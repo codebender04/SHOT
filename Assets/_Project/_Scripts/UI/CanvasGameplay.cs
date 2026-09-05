@@ -1,10 +1,12 @@
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class CanvasGameplay : UICanvas
 {
     [SerializeField] private Image bulletIcon;
+    [SerializeField] private TextMeshProUGUI txtRound;
     [SerializeField] private Transform bulletHolder;
     [SerializeField] private TextMeshProUGUI txtBulletCounter;
     [SerializeField] private UIStack moneyStack;
@@ -16,9 +18,16 @@ public class CanvasGameplay : UICanvas
     {
         Player.Instance.OnAmmoChanged += Player_OnAmmoChanged;
         Enemy.OnKilled += Enemy_OnKilled;
+        RoundManager.Instance.OnRoundStart += RoundManager_OnRoundStart;
 
         Player_OnAmmoChanged(Player.Instance.Ammo);
+        txtRound.text = $"ROUND 01";
         RefreshMoney();
+    }
+
+    private void RoundManager_OnRoundStart(int round)
+    {
+        txtRound.text = $"ROUND {round:D2}";
     }
 
     private void OnDestroy()
@@ -33,7 +42,7 @@ public class CanvasGameplay : UICanvas
     {
         money++;
         txtMoneyCounter.text = $"${money}";
-        moneyStack.Add();
+        moneyStack.Change(1);
     }
 
     private void Player_OnAmmoChanged(int ammo)
@@ -48,8 +57,10 @@ public class CanvasGameplay : UICanvas
     }
     public void ChangeMoney(int value)
     {
-        money += value;
-        moneyStack.Add(value);
+        money = Mathf.Max(0, money + value);
+
+        moneyStack.Change(value);
+
         txtMoneyCounter.text = $"${money}";
     }
     private void RefreshMoney()

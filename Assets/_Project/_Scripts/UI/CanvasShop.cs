@@ -7,6 +7,8 @@ public class CanvasShop : UICanvas
     [Header("References")]
     [SerializeField] private RectTransform panel;
     [SerializeField] private Button btnNextRound;
+    [SerializeField] private Button btnBuyAmmo;
+    [SerializeField] private Button btnBuyAmmo2;
 
     [Header("Animation")]
     [SerializeField] private float slideDistance = 600f;
@@ -20,6 +22,16 @@ public class CanvasShop : UICanvas
         targetPosition = panel.anchoredPosition;
 
         btnNextRound.onClick.AddListener(OnNextRound);
+        btnBuyAmmo.onClick.AddListener(() =>
+        {
+            Player.Instance.ChangeAmmo(1);
+            UIManager.Instance.GetCanvas<CanvasGameplay>().ChangeMoney(-3);
+        });
+        btnBuyAmmo2.onClick.AddListener(() =>
+        {
+            Player.Instance.ChangeAmmo(1);
+            UIManager.Instance.GetCanvas<CanvasGameplay>().ChangeMoney(-3);
+        });
         CloseImmediate();
     }
 

@@ -10,12 +10,12 @@ public class SpawnerEnemy : Enemy
         if (enemyPrefab == null)
             return;
 
-        Enemy spawnedEnemy = Instantiate(
-            enemyPrefab,
-            transform.position,
-            Quaternion.identity
-        );
 
+        Invoke(nameof(SpawnEnemy), 0.2f);
+    }
+    private void SpawnEnemy()
+    {
+        Enemy spawnedEnemy = Instantiate(enemyPrefab, transform.position, Quaternion.identity);
         RoundManager.Instance.RegisterEnemy(spawnedEnemy);
     }
 }

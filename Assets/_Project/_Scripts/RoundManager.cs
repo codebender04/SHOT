@@ -1,8 +1,11 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class RoundManager : Singleton<RoundManager>
 {
+    public event Action<int> OnRoundStart;
     [Header("References")]
     [SerializeField] private Enemy enemyPrefab;
     [SerializeField] private BoxCollider2D arenaBounds;
@@ -58,6 +61,7 @@ public class RoundManager : Singleton<RoundManager>
         Time.timeScale = 1f;
 
         SpawnEnemies(GetEnemyCount(currentRound));
+        OnRoundStart?.Invoke(currentRound);
     }
 
     private int GetEnemyCount(int round)

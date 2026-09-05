@@ -5,21 +5,30 @@ public class UIStack : MonoBehaviour
 {
     [SerializeField] private Image itemPrefab;
     [SerializeField] private float offset = 3f;
+
     private void Start()
     {
-        for (int i = 0; i < transform.childCount; i++)
-        {
-            Destroy(transform.GetChild(i).gameObject);
-        }
+        Clear();
     }
-    public void Add(int value = 1)
+
+    public void Change(int value)
     {
-        for (int i = 0; i < value; i++)
+        if (value > 0)
         {
-            Instantiate(itemPrefab, transform);
+            for (int i = 0; i < value; i++)
+                Instantiate(itemPrefab, transform);
         }
+        else if (value < 0)
+        {
+            int removeCount = Mathf.Min(-value, transform.childCount);
+
+            for (int i = 0; i < removeCount; i++)
+                Destroy(transform.GetChild(transform.childCount - 1 - i).gameObject);
+        }
+
         Refresh();
     }
+
     public void Refresh()
     {
         for (int i = 0; i < transform.childCount; i++)
@@ -31,5 +40,11 @@ public class UIStack : MonoBehaviour
 
             child.anchoredPosition = Vector2.up * (i * offset);
         }
+    }
+
+    private void Clear()
+    {
+        for (int i = 0; i < transform.childCount; i++)
+            Destroy(transform.GetChild(i).gameObject);
     }
 }
