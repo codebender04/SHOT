@@ -20,6 +20,7 @@ public class Bullet : MonoBehaviour
     public int MaxBounces => maxBounces;
 
     [Header("Effects")]
+    [SerializeField] private ParticleSystem bounceEffect;
     [SerializeField] private TrailRenderer bulletTrail;
     [SerializeField] private int trailCornerVertices = 0;
     [SerializeField] private int trailCapVertices = 0;
@@ -140,12 +141,13 @@ public class Bullet : MonoBehaviour
 
         int wallLayer = LayerMask.NameToLayer("Wall");
 
-        if (hit.collider.gameObject.layer == wallLayer ||
-            hit.collider.CompareTag(Constants.TAG_WALL))
+        if (hit.collider.gameObject.layer == wallLayer || hit.collider.CompareTag(Constants.TAG_WALL))
         {
             bulletTrail?.AddPosition(hit.point);
 
             Bounce(hit.normal);
+
+            Destroy(Instantiate(bounceEffect, (Vector3)hit.point, Quaternion.Euler(hit.normal)).gameObject, 1f);
             onBounced?.Invoke();
 
             float remainingDistance = distance - hit.distance;

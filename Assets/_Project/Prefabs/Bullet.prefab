@@ -262,6 +262,7 @@ MonoBehaviour:
   hitLayers:
     serializedVersion: 2
     m_Bits: 136
+  bounceEffect: {fileID: 5521439052516798281, guid: 7599eea9d890ab041a9d135cebe82c9f, type: 3}
   bulletTrail: {fileID: 4757264090240776296}
   trailCornerVertices: 0
   trailCapVertices: 0
