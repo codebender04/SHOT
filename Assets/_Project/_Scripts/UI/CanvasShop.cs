@@ -7,6 +7,7 @@ public class CanvasShop : UICanvas
     [Header("References")]
     [SerializeField] private RectTransform panel;
     [SerializeField] private Button btnNextRound;
+    [SerializeField] private Button btnBuyBounce;
     [SerializeField] private Button btnBuyAmmo;
     [SerializeField] private Button btnBuyAmmo2;
 
@@ -22,6 +23,11 @@ public class CanvasShop : UICanvas
         targetPosition = panel.anchoredPosition;
 
         btnNextRound.onClick.AddListener(OnNextRound);
+        btnBuyBounce.onClick.AddListener(() =>
+        {
+            Player.Instance.IncreaseMaxBounces();
+            UIManager.Instance.GetCanvas<CanvasGameplay>().ChangeMoney(-1);
+        });
         btnBuyAmmo.onClick.AddListener(() =>
         {
             Player.Instance.ChangeAmmo(1);

@@ -165,8 +165,12 @@ public class RoundManager : Singleton<RoundManager>
 
         roundActive = false;
         GameManager.Instance.SetState(GameState.Shop);
-        Time.timeScale = 0f;
 
+        Invoke(nameof(OpenShop), 0.5f);
+    }
+    private void OpenShop()
+    {
+        Time.timeScale = 0f;
         UIManager.Instance.GetCanvas<CanvasShop>().Open();
     }
 }

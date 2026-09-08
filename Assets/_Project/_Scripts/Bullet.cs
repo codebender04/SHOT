@@ -11,19 +11,17 @@ public class Bullet : MonoBehaviour
     [Header("Movement")]
     [SerializeField] private float speed = 18f;
     [SerializeField] private float lifetime = 5f;
-    [SerializeField] private int maxBounces = 10;
 
     [Header("Collision Layers")]
     [SerializeField] private LayerMask hitLayers;
 
     public float MaxTravelDistance => speed * lifetime;
-    public int MaxBounces => maxBounces;
 
     [Header("Effects")]
     [SerializeField] private ParticleSystem bounceEffect;
     [SerializeField] private TrailRenderer bulletTrail;
-    [SerializeField] private int trailCornerVertices = 0;
-    [SerializeField] private int trailCapVertices = 0;
+    [SerializeField] private int trailCornerVertices;
+    [SerializeField] private int trailCapVertices;
     [SerializeField] private float trailWidth = 0.05f;
 
     private Vector2 direction;
@@ -31,18 +29,23 @@ public class Bullet : MonoBehaviour
     private Action onBounced;
     private Action onHit;
 
+    private int maxBounces;
     private int bounceCount;
     private float remainingLifetime;
     private bool active;
+
     private readonly List<Enemy> killedEnemyList = new();
 
     public void Initialize(
         Vector2 shootDirection,
+        int bounceLimit,
         Action finishedCallback,
         Action bouncedCallback,
         Action hitCallback)
     {
         direction = shootDirection.normalized;
+        maxBounces = bounceLimit;
+
         onFinished = finishedCallback;
         onBounced = bouncedCallback;
         onHit = hitCallback;
@@ -122,7 +125,7 @@ public class Bullet : MonoBehaviour
 
         if (hit.collider.gameObject.layer == enemyLayer)
         {
-            if (hit.collider.TryGetComponent<Enemy>(out var enemy))
+            if (hit.collider.TryGetComponent(out Enemy enemy))
             {
                 enemy.TakeHit();
                 onHit?.Invoke();
@@ -141,14 +144,28 @@ public class Bullet : MonoBehaviour
 
         int wallLayer = LayerMask.NameToLayer("Wall");
 
-        if (hit.collider.gameObject.layer == wallLayer || hit.collider.CompareTag(Constants.TAG_WALL))
+        if (hit.collider.gameObject.layer == wallLayer ||
+            hit.collider.CompareTag(Constants.TAG_WALL))
         {
             bulletTrail?.AddPosition(hit.point);
 
             Bounce(hit.normal);
 
-            Destroy(Instantiate(bounceEffect, (Vector3)hit.point, Quaternion.Euler(hit.normal)).gameObject, 1f);
+            if (bounceEffect != null)
+            {
+                ParticleSystem effect = Instantiate(
+                    bounceEffect,
+                    hit.point,
+                    Quaternion.Euler(hit.normal)
+                );
+
+                Destroy(effect.gameObject, 1f);
+            }
+
             onBounced?.Invoke();
+
+            if (!active)
+                return;
 
             float remainingDistance = distance - hit.distance;
 
@@ -163,11 +180,15 @@ public class Bullet : MonoBehaviour
 
     private void Bounce(Vector2 normal)
     {
-        direction = Vector2.Reflect(direction, normal).normalized;
         bounceCount++;
 
-        if (bounceCount >= maxBounces)
+        if (bounceCount > maxBounces)
+        {
             Finish();
+            return;
+        }
+
+        direction = Vector2.Reflect(direction, normal).normalized;
     }
 
     private void Finish()

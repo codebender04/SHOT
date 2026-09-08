@@ -7,6 +7,7 @@ using UnityEngine;
 public class Player : Singleton<Player>
 {
     public event Action<int> OnAmmoChanged;
+    public event Action<int> OnMaxBouncesChanged;
 
     [Header("References")]
     [SerializeField] private Bullet bulletPrefab;
@@ -18,6 +19,7 @@ public class Player : Singleton<Player>
 
     [Header("Shooting")]
     [SerializeField] private int ammo = 5;
+    [SerializeField] private int maxBounces = 0;
 
     [Header("Movement")]
     [SerializeField] private Rigidbody2D rb;
@@ -38,33 +40,31 @@ public class Player : Singleton<Player>
 
     [Header("Aim Preview")]
     [SerializeField] private LineRenderer aimPreviewLine;
-    [SerializeField] private int maxPreviewBounces = 3;
     [SerializeField] private float previewLength = 10f;
     [SerializeField] private float dotSpacing = 0.35f;
     [SerializeField] private LayerMask bulletCollisionMask;
 
-    private readonly List<Vector3> previewPoints = new List<Vector3>();
+    private readonly List<Vector3> previewPoints = new();
 
     private Vector3 currentTiltVelocity;
-    private Vector3 basePosition;
-    private Vector3 baseScale;
     private Quaternion baseRotation;
     private Camera mainCamera;
     private bool canShoot = true;
 
     public int Ammo => ammo;
+    public int MaxBounces => maxBounces;
 
     private void Awake()
     {
         mainCamera = Camera.main;
-        basePosition = transform.localPosition;
-        baseScale = transform.localScale;
         baseRotation = transform.localRotation;
 
         GameInput.Instance.ShootPressed += Shoot;
 
         SetupAimPreviewLine();
+
         OnAmmoChanged?.Invoke(ammo);
+        OnMaxBouncesChanged?.Invoke(maxBounces);
     }
 
     private void OnDestroy()
@@ -72,6 +72,7 @@ public class Player : Singleton<Player>
         if (GameInput.Instance != null)
             GameInput.Instance.ShootPressed -= Shoot;
     }
+
     private void SetupAimPreviewLine()
     {
         if (aimPreviewLine == null)
@@ -89,7 +90,11 @@ public class Player : Singleton<Player>
     private void UpdateAim(Vector2 screenPosition)
     {
         Vector3 mouseWorld = mainCamera.ScreenToWorldPoint(
-            new Vector3(screenPosition.x, screenPosition.y, -mainCamera.transform.position.z)
+            new Vector3(
+                screenPosition.x,
+                screenPosition.y,
+                -mainCamera.transform.position.z
+            )
         );
 
         Vector2 direction = mouseWorld - transform.position;
@@ -102,14 +107,19 @@ public class Player : Singleton<Player>
         UpdatePlayerTilt(mouseWorld);
 
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+
         gun.rotation = Quaternion.Euler(0f, 0f, angle);
         gun.position = transform.position + (Vector3)(direction * gunDistance);
 
         Vector3 gunScale = gun.localScale;
-        gunScale.y = direction.x < 0f ? -Mathf.Abs(gunScale.y) : Mathf.Abs(gunScale.y);
+        gunScale.y = direction.x < 0f
+            ? -Mathf.Abs(gunScale.y)
+            : Mathf.Abs(gunScale.y);
+
         gun.localScale = gunScale;
 
         firePoint.right = direction;
+
         UpdateAimPreview(firePoint.position, direction);
     }
 
@@ -118,10 +128,9 @@ public class Player : Singleton<Player>
         if (aimPreviewLine == null)
             return;
 
-        bool visible = ammo > 0;
-        aimPreviewLine.enabled = visible;
+        aimPreviewLine.enabled = ammo > 0;
 
-        if (!visible)
+        if (!aimPreviewLine.enabled)
             return;
 
         previewPoints.Clear();
@@ -129,6 +138,7 @@ public class Player : Singleton<Player>
 
         Vector2 currentPosition = origin;
         Vector2 currentDirection = direction;
+
         float remainingDistance = previewLength;
         int bounceCount = 0;
 
@@ -143,7 +153,10 @@ public class Player : Singleton<Player>
 
             if (hit.collider == null)
             {
-                previewPoints.Add(currentPosition + currentDirection * remainingDistance);
+                previewPoints.Add(
+                    currentPosition + currentDirection * remainingDistance
+                );
+
                 break;
             }
 
@@ -152,17 +165,25 @@ public class Player : Singleton<Player>
 
             if (!hit.collider.CompareTag(Constants.TAG_WALL))
             {
-                currentPosition = hit.point + currentDirection * 0.02f;
+                currentPosition =
+                    hit.point + currentDirection * 0.02f;
+
                 continue;
             }
 
             bounceCount++;
 
-            if (bounceCount > maxPreviewBounces)
+            if (bounceCount > maxBounces)
                 break;
 
-            currentDirection = Vector2.Reflect(currentDirection, hit.normal).normalized;
-            currentPosition = hit.point + currentDirection * 0.02f;
+            currentDirection =
+                Vector2.Reflect(
+                    currentDirection,
+                    hit.normal
+                ).normalized;
+
+            currentPosition =
+                hit.point + currentDirection * 0.02f;
         }
 
         aimPreviewLine.positionCount = previewPoints.Count;
@@ -179,21 +200,42 @@ public class Player : Singleton<Player>
         float totalLength = 0f;
 
         for (int i = 1; i < previewPoints.Count; i++)
-            totalLength += Vector3.Distance(previewPoints[i - 1], previewPoints[i]);
+        {
+            totalLength += Vector3.Distance(
+                previewPoints[i - 1],
+                previewPoints[i]
+            );
+        }
 
-        aimPreviewLine.material.mainTextureScale = new Vector2(totalLength / dotSpacing, 1f);
+        aimPreviewLine.material.mainTextureScale =
+            new Vector2(totalLength / dotSpacing, 1f);
     }
 
     private void UpdatePlayerTilt(Vector3 mouseWorld)
     {
         Vector3 offset = mouseWorld - transform.position;
-        float normalizedX = Mathf.Clamp(offset.x / tiltDistance, -1f, 1f);
-        float normalizedY = Mathf.Clamp(offset.y / tiltDistance, -1f, 1f);
+
+        float normalizedX = Mathf.Clamp(
+            offset.x / tiltDistance,
+            -1f,
+            1f
+        );
+
+        float normalizedY = Mathf.Clamp(
+            offset.y / tiltDistance,
+            -1f,
+            1f
+        );
 
         float targetTiltX = -normalizedY * maxTilt;
         float targetTiltY = normalizedX * maxTilt;
 
-        Vector3 targetEuler = new Vector3(targetTiltX, targetTiltY, 0f);
+        Vector3 targetEuler = new(
+            targetTiltX,
+            targetTiltY,
+            0f
+        );
+
         Vector3 currentEuler = transform.localEulerAngles;
 
         currentEuler.x = NormalizeAngle(currentEuler.x);
@@ -206,7 +248,9 @@ public class Player : Singleton<Player>
             1f / tiltSmoothness
         );
 
-        transform.localRotation = baseRotation * Quaternion.Euler(newEuler);
+        transform.localRotation =
+            baseRotation *
+            Quaternion.Euler(newEuler);
     }
 
     private float NormalizeAngle(float angle)
@@ -216,6 +260,7 @@ public class Player : Singleton<Player>
 
         return angle;
     }
+
     private void Shoot()
     {
         if (!GameManager.Instance.IsPlaying)
@@ -241,6 +286,7 @@ public class Player : Singleton<Player>
 
         bullet.Initialize(
             direction,
+            maxBounces,
             () => canShoot = true,
             () => bounceFeedback?.PlayFeedbacks(),
             () => hitFeedback?.PlayFeedbacks()
@@ -248,12 +294,19 @@ public class Player : Singleton<Player>
 
         shootFeedback?.PlayFeedbacks();
     }
+
     public void ChangeAmmo(int value)
     {
-        ammo += value;
-        ammo = Mathf.Max(ammo, 0);
+        ammo = Mathf.Max(0, ammo + value);
         OnAmmoChanged?.Invoke(ammo);
     }
+
+    public void IncreaseMaxBounces(int amount = 1)
+    {
+        maxBounces += amount;
+        OnMaxBouncesChanged?.Invoke(maxBounces);
+    }
+
     private void FixedUpdate()
     {
         Vector2 velocity = rb.linearVelocity;
@@ -270,9 +323,14 @@ public class Player : Singleton<Player>
             return;
         }
 
-        velocity = Vector2.ClampMagnitude(velocity, maxSpeed);
+        velocity = Vector2.ClampMagnitude(
+            velocity,
+            maxSpeed
+        );
 
-        float distance = velocity.magnitude * Time.fixedDeltaTime;
+        float distance =
+            velocity.magnitude * Time.fixedDeltaTime;
+
         Vector2 direction = velocity.normalized;
 
         RaycastHit2D hit = Physics2D.Raycast(
@@ -282,12 +340,14 @@ public class Player : Singleton<Player>
             bulletCollisionMask
         );
 
-        if (hit.collider != null && hit.collider.CompareTag(Constants.TAG_WALL))
+        if (hit.collider != null &&
+            hit.collider.CompareTag(Constants.TAG_WALL))
         {
-            Vector2 reflectedDirection = Vector2.Reflect(
-                direction,
-                hit.normal
-            ).normalized;
+            Vector2 reflectedDirection =
+                Vector2.Reflect(
+                    direction,
+                    hit.normal
+                ).normalized;
 
             float bounceSpeed = Mathf.Max(
                 velocity.magnitude * wallBounceMultiplier,
@@ -307,7 +367,11 @@ public class Player : Singleton<Player>
             return;
         }
 
-        rb.MovePosition(rb.position + velocity * Time.fixedDeltaTime);
+        rb.MovePosition(
+            rb.position +
+            velocity * Time.fixedDeltaTime
+        );
+
         rb.linearVelocity = velocity;
     }
 }
