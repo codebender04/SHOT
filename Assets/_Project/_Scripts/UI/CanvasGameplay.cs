@@ -55,6 +55,10 @@ public class CanvasGameplay : UICanvas
         for (int i = 0; i < ammo; i++)
             Instantiate(bulletIcon, bulletHolder);
     }
+    public bool CanAfford(int cost)
+    {
+        return money >= cost;
+    }
     public void ChangeMoney(int value)
     {
         money = Mathf.Max(0, money + value);

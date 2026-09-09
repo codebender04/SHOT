@@ -5,6 +5,7 @@ using UnityEngine;
 public class Enemy : MonoBehaviour
 {
     public static event Action<Vector3> OnKilled;
+    public static event Action<Enemy> OnFinishedDeath;
 
     [Header("References")]
     [SerializeField] private Animator animator;
@@ -62,17 +63,12 @@ public class Enemy : MonoBehaviour
     {
         Sequence sequence = DOTween.Sequence();
 
-        sequence.Join(
-            visual.DOFade(0f, fadeDuration)
-        );
-
-        sequence.Join(
-            transform.DOScale(deathScale, fadeDuration)
-                .SetEase(Ease.InQuad)
-        );
+        sequence.Join(visual.DOFade(0f, fadeDuration));
+        sequence.Join(transform.DOScale(deathScale, fadeDuration).SetEase(Ease.InQuad));
 
         sequence.OnComplete(() =>
         {
+            OnFinishedDeath?.Invoke(this);
             Destroy(gameObject);
         });
     }

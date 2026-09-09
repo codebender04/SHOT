@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
+    public static event Action<Vector3, int> OnEnemyKilled;
     public static event Action OnFinished;
 
     public static int ActiveCount { get; private set; }
@@ -24,6 +25,8 @@ public class Bullet : MonoBehaviour
     [SerializeField] private int trailCapVertices;
     [SerializeField] private float trailWidth = 0.05f;
 
+    private BulletFireEffect fireEffect;
+
     private Vector2 direction;
     private Action onFinished;
     private Action onBounced;
@@ -31,10 +34,16 @@ public class Bullet : MonoBehaviour
 
     private int maxBounces;
     private int bounceCount;
+    private int killStreak;
     private float remainingLifetime;
     private bool active;
 
     private readonly List<Enemy> killedEnemyList = new();
+
+    private void Awake()
+    {
+        fireEffect = GetComponent<BulletFireEffect>();
+    }
 
     public void Initialize(
         Vector2 shootDirection,
@@ -50,6 +59,7 @@ public class Bullet : MonoBehaviour
         onBounced = bouncedCallback;
         onHit = hitCallback;
 
+        killStreak = 0;
         bounceCount = 0;
         remainingLifetime = lifetime;
         active = true;
@@ -57,6 +67,7 @@ public class Bullet : MonoBehaviour
         ActiveCount++;
 
         SetupTrail();
+        fireEffect?.ResetFire();
     }
 
     private void OnDestroy()
@@ -131,7 +142,13 @@ public class Bullet : MonoBehaviour
                 onHit?.Invoke();
 
                 if (enemy.IsDead)
+                {
                     killedEnemyList.Add(enemy);
+
+                    killStreak++;
+                    OnEnemyKilled?.Invoke(hit.point, killStreak);
+                    fireEffect?.SetKillStreak(killStreak);
+                }
             }
 
             float remainingDistance = distance - hit.distance;

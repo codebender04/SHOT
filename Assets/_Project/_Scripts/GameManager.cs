@@ -11,6 +11,10 @@ public class GameManager : Singleton<GameManager>
     {
         State = state;
     }
+    public void PauseGame()
+    {
+        SetState(GameState.Shop);
+    }
 }
 public enum GameState
 {

@@ -1,176 +1,261 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 public class RoundManager : Singleton<RoundManager>
 {
+    [Serializable]
+    private class EnemyType
+    {
+        public Enemy prefab;
+        public int cost = 1;
+        public int unlockRound = 1;
+        [Range(0f, 1f)] public float spawnWeight = 1f;
+    }
+
+    [Serializable]
+    private class CollectibleType
+    {
+        public Collectible prefab;
+        public int unlockRound = 1;
+        [Range(0f, 1f)] public float spawnWeight = 1f;
+    }
+
+    [Header("Rounds")]
+    [SerializeField] private int startingEnemyBudget = 3;
+    [SerializeField] private int enemyBudgetIncrease = 2;
+    [SerializeField] private float budgetGrowth = 0.1f;
+
+    [Header("Enemies")]
+    [SerializeField] private List<EnemyType> enemyTypes = new();
+    [SerializeField] private float enemySpawnPadding = 0.5f;
+    [SerializeField] private int maxEnemiesPerRound = 20;
+
+    [Header("Collectibles")]
+    [SerializeField, Range(0f, 1f)] private float collectibleChance = 0.5f;
+    [SerializeField] private List<CollectibleType> collectibleTypes = new();
+    [SerializeField] private float collectibleSpawnPadding = 0.5f;
+
     public event Action<int> OnRoundStart;
-    [Header("References")]
-    [SerializeField] private Enemy enemyPrefab;
-    [SerializeField] private BoxCollider2D arenaBounds;
 
-    [Header("Round")]
-    [SerializeField] private int startingEnemies = 3;
-    [SerializeField] private int enemiesPerRound = 1;
+    private readonly HashSet<Enemy> activeEnemies = new();
 
-    [Header("Spawn")]
-    [SerializeField] private float spawnPadding = 0.5f;
-    [SerializeField] private float minDistanceFromPlayer = 2f;
-    [SerializeField] private int maxSpawnAttempts = 50;
-
-    private readonly List<Enemy> activeEnemies = new();
-
-    private int currentRound;
-    private bool roundActive;
-    private bool waitingForBullet;
-
-    public int CurrentRound => currentRound;
-
-    private void OnEnable()
-    {
-        Enemy.OnKilled += Enemy_OnKilled;
-        Bullet.OnFinished += Bullet_OnFinished;
-    }
-
-    private void OnDisable()
-    {
-        Enemy.OnKilled -= Enemy_OnKilled;
-        Bullet.OnFinished -= Bullet_OnFinished;
-    }
+    public int CurrentRound { get; private set; }
+    public bool IsRoundActive { get; private set; }
 
     private void Start()
     {
-        GameManager.Instance.SetState(GameState.Playing);
-        StartRound(1);
+        Enemy.OnKilled += Enemy_OnKilled;
+        Enemy.OnFinishedDeath += Enemy_OnFinishedDeath;
+
+        StartRun();
+    }
+
+    private void OnDestroy()
+    {
+        Enemy.OnKilled -= Enemy_OnKilled;
+        Enemy.OnFinishedDeath -= Enemy_OnFinishedDeath;
+    }
+
+    public void StartRun()
+    {
+        CurrentRound = 0;
+        activeEnemies.Clear();
+
+        StartNextRound();
     }
 
     public void StartNextRound()
     {
-        StartRound(currentRound + 1);
+        if (IsRoundActive)
+            return;
+
+        CurrentRound++;
+        IsRoundActive = true;
+
+        SpawnRound();
+
+        OnRoundStart?.Invoke(CurrentRound);
     }
 
-    private void StartRound(int round)
+    private void SpawnRound()
     {
-        currentRound = round;
-        roundActive = true;
-        waitingForBullet = false;
+        int budget = GetEnemyBudget(CurrentRound);
 
-        GameManager.Instance.SetState(GameState.Playing);
-
-        Time.timeScale = 1f;
-
-        SpawnEnemies(GetEnemyCount(currentRound));
-        OnRoundStart?.Invoke(currentRound);
+        SpawnEnemies(budget);
+        SpawnCollectible();
     }
 
-    private int GetEnemyCount(int round)
+    private int GetEnemyBudget(int round)
     {
-        return startingEnemies + (round - 1) * enemiesPerRound;
+        float growth = Mathf.Pow(1f + budgetGrowth, round - 1);
+
+        return Mathf.Max(
+            startingEnemyBudget,
+            Mathf.RoundToInt(
+                startingEnemyBudget * growth +
+                (round - 1) * enemyBudgetIncrease
+            )
+        );
     }
 
-    private void SpawnEnemies(int count)
+    private void SpawnEnemies(int budget)
     {
-        activeEnemies.Clear();
+        int spawned = 0;
 
-        for (int i = 0; i < count; i++)
+        while (budget > 0 && spawned < maxEnemiesPerRound)
         {
-            Vector3 spawnPosition = GetSpawnPosition();
+            EnemyType enemyType = GetRandomEnemy(budget);
+
+            if (enemyType == null)
+                break;
+
+            Vector2 position = ArenaManager.Instance.GetRandomPosition();
 
             Enemy enemy = Instantiate(
-                enemyPrefab,
-                spawnPosition,
+                enemyType.prefab,
+                position,
                 Quaternion.identity
             );
 
-            activeEnemies.Add(enemy);
+            RegisterEnemy(enemy);
+
+            budget -= enemyType.cost;
+            spawned++;
         }
     }
 
-    private Vector3 GetSpawnPosition()
+    private EnemyType GetRandomEnemy(int budget)
     {
-        Bounds bounds = arenaBounds.bounds;
+        List<EnemyType> available = new();
 
-        for (int i = 0; i < maxSpawnAttempts; i++)
+        foreach (EnemyType enemyType in enemyTypes)
         {
-            float x = Random.Range(
-                bounds.min.x + spawnPadding,
-                bounds.max.x - spawnPadding
-            );
+            if (enemyType.prefab == null)
+                continue;
 
-            float y = Random.Range(
-                bounds.min.y + spawnPadding,
-                bounds.max.y - spawnPadding
-            );
+            if (CurrentRound < enemyType.unlockRound)
+                continue;
 
-            Vector3 position = new Vector3(x, y, 0f);
+            if (enemyType.cost > budget)
+                continue;
 
-            if (Player.Instance == null)
-                return position;
-
-            if (Vector2.Distance(
-                    position,
-                    Player.Instance.transform.position) >= minDistanceFromPlayer)
-            {
-                return position;
-            }
+            available.Add(enemyType);
         }
 
-        return bounds.center;
+        if (available.Count == 0)
+            return null;
+
+        float totalWeight = 0f;
+
+        foreach (EnemyType enemyType in available)
+            totalWeight += enemyType.spawnWeight;
+
+        float roll = UnityEngine.Random.value * totalWeight;
+
+        foreach (EnemyType enemyType in available)
+        {
+            roll -= enemyType.spawnWeight;
+
+            if (roll <= 0f)
+                return enemyType;
+        }
+
+        return available[^1];
     }
 
-    private void Enemy_OnKilled(Vector3 position)
+    private void SpawnCollectible()
     {
-        if (!roundActive)
+        if (UnityEngine.Random.value > collectibleChance)
             return;
 
-        activeEnemies.RemoveAll(enemy =>
-            enemy == null || enemy.IsDead
+        CollectibleType collectible = GetRandomCollectible();
+
+        if (collectible == null)
+            return;
+
+        Vector2 position = ArenaManager.Instance.GetRandomPosition();
+
+        Instantiate(
+            collectible.prefab,
+            position,
+            Quaternion.identity
         );
+    }
 
-        if (activeEnemies.Count > 0)
-            return;
+    private CollectibleType GetRandomCollectible()
+    {
+        List<CollectibleType> available = new();
 
-        if (Bullet.ActiveCount > 0)
+        foreach (CollectibleType collectible in collectibleTypes)
         {
-            waitingForBullet = true;
-            return;
+            if (collectible.prefab == null)
+                continue;
+
+            if (CurrentRound < collectible.unlockRound)
+                continue;
+
+            available.Add(collectible);
         }
 
-        CompleteRound();
+        if (available.Count == 0)
+            return null;
+
+        float totalWeight = 0f;
+
+        foreach (CollectibleType collectible in available)
+            totalWeight += collectible.spawnWeight;
+
+        float roll = UnityEngine.Random.value * totalWeight;
+
+        foreach (CollectibleType collectible in available)
+        {
+            roll -= collectible.spawnWeight;
+
+            if (roll <= 0f)
+                return collectible;
+        }
+
+        return available[^1];
     }
 
-    private void Bullet_OnFinished()
-    {
-        if (!roundActive || !waitingForBullet)
-            return;
-
-        waitingForBullet = false;
-
-        CompleteRound();
-    }
     public void RegisterEnemy(Enemy enemy)
     {
         if (enemy == null)
             return;
 
-        if (!activeEnemies.Contains(enemy))
-            activeEnemies.Add(enemy);
+        activeEnemies.Add(enemy);
     }
 
-    private void CompleteRound()
+    private void Enemy_OnKilled(Vector3 position)
     {
-        if (!roundActive)
+        CheckRoundComplete();
+    }
+
+    private void Enemy_OnFinishedDeath(Enemy enemy)
+    {
+        activeEnemies.Remove(enemy);
+        CheckRoundComplete();
+    }
+
+    public void CheckRoundComplete()
+    {
+        if (!IsRoundActive)
             return;
 
-        roundActive = false;
-        GameManager.Instance.SetState(GameState.Shop);
+        if (activeEnemies.Count > 0)
+            return;
 
-        Invoke(nameof(OpenShop), 0.5f);
+        EndRound();
     }
-    private void OpenShop()
+
+    private void EndRound()
     {
-        Time.timeScale = 0f;
-        UIManager.Instance.GetCanvas<CanvasShop>().Open();
+        if (!IsRoundActive)
+            return;
+
+        IsRoundActive = false;
+
+        UIManager.Instance.Open<CanvasShop>();
     }
 }

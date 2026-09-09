@@ -1,4 +1,5 @@
 using DG.Tweening;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,8 +9,20 @@ public class CanvasShop : UICanvas
     [SerializeField] private RectTransform panel;
     [SerializeField] private Button btnNextRound;
     [SerializeField] private Button btnBuyBounce;
+    [SerializeField] private Button btnBuyBounce2;
+    [SerializeField] private TextMeshProUGUI txtBouncePrice;
+
     [SerializeField] private Button btnBuyAmmo;
     [SerializeField] private Button btnBuyAmmo2;
+    [SerializeField] private TextMeshProUGUI txtAmmoPrice;
+
+    [Header("Bounce")]
+    [SerializeField] private int bouncePrice = 1;
+    [SerializeField] private int bouncePriceIncrease = 2;
+
+    [Header("Ammo")]
+    [SerializeField] private int ammoPrice = 3;
+    [SerializeField] private int ammoPriceIncrease = 3;
 
     [Header("Animation")]
     [SerializeField] private float slideDistance = 600f;
@@ -23,33 +36,68 @@ public class CanvasShop : UICanvas
         targetPosition = panel.anchoredPosition;
 
         btnNextRound.onClick.AddListener(OnNextRound);
-        btnBuyBounce.onClick.AddListener(() =>
-        {
-            Player.Instance.IncreaseMaxBounces();
-            UIManager.Instance.GetCanvas<CanvasGameplay>().ChangeMoney(-1);
-        });
-        btnBuyAmmo.onClick.AddListener(() =>
-        {
-            Player.Instance.ChangeAmmo(1);
-            UIManager.Instance.GetCanvas<CanvasGameplay>().ChangeMoney(-3);
-        });
-        btnBuyAmmo2.onClick.AddListener(() =>
-        {
-            Player.Instance.ChangeAmmo(1);
-            UIManager.Instance.GetCanvas<CanvasGameplay>().ChangeMoney(-3);
-        });
+
+        btnBuyBounce.onClick.AddListener(BuyBounce);
+        btnBuyBounce2.onClick.AddListener(BuyBounce);
+
+        btnBuyAmmo.onClick.AddListener(BuyAmmo);
+        btnBuyAmmo2.onClick.AddListener(BuyAmmo);
+
+        txtBouncePrice.text = $"{bouncePrice}";
+        txtAmmoPrice.text = $"{ammoPrice}";
         CloseImmediate();
     }
 
     private void OnEnable()
     {
         PlayOpenAnimation();
+
+        GameManager.Instance.SetState(GameState.Shop);
         GameInput.Instance.BlockShootUntilReleased();
     }
 
     private void OnDisable()
     {
+        GameManager.Instance.SetState(GameState.Playing);
         sequence?.Kill();
+    }
+
+    private void BuyBounce()
+    {
+        Buy(
+            bouncePrice,
+            () => Player.Instance.IncreaseMaxBounces(),
+            () =>
+            {
+                bouncePrice += bouncePriceIncrease;
+                txtBouncePrice.text = $"${bouncePrice}";
+            }
+        );
+    }
+
+    private void BuyAmmo()
+    {
+        Buy(
+            ammoPrice,
+            () => Player.Instance.ChangeAmmo(1),
+            () =>
+            {
+                ammoPrice += ammoPriceIncrease;
+                txtAmmoPrice.text = $"${ammoPrice}";
+            }
+
+        );
+    }
+
+    private void Buy(int price, System.Action purchase, System.Action increasePrice)
+    {
+        if (!UIManager.Instance.GetCanvas<CanvasGameplay>().CanAfford(price))
+            return;
+
+        UIManager.Instance.GetCanvas<CanvasGameplay>().ChangeMoney(-price);
+
+        purchase();
+        increasePrice();
     }
 
     private void PlayOpenAnimation()
@@ -70,6 +118,7 @@ public class CanvasShop : UICanvas
 
         sequence.SetUpdate(true);
     }
+
     private void OnNextRound()
     {
         sequence?.Kill();

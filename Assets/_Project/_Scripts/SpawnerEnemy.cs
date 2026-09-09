@@ -7,9 +7,7 @@ public class SpawnerEnemy : Enemy
 
     protected override void OnDeathStarted()
     {
-        if (enemyPrefab == null)
-            return;
-
+        if (enemyPrefab == null) return;
 
         Invoke(nameof(SpawnEnemy), 0.2f);
     }
