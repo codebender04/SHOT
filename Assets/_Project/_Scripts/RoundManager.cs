@@ -258,4 +258,18 @@ public class RoundManager : Singleton<RoundManager>
 
         UIManager.Instance.Open<CanvasShop>();
     }
+    public void CheckRunLost()
+    {
+        if (Player.Instance.Ammo > 0)
+            return;
+
+        foreach (Enemy enemy in activeEnemies)
+        {
+            if (enemy != null && !enemy.IsDead)
+            {
+                UIManager.Instance.Open<CanvasPremiumShop>();
+                return;
+            }
+        }
+    }
 }

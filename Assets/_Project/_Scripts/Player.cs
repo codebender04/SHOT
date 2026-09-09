@@ -287,7 +287,11 @@ public class Player : Singleton<Player>
         bullet.Initialize(
             direction,
             maxBounces,
-            () => canShoot = true,
+            () =>
+                {
+                    canShoot = true;
+                    RoundManager.Instance.CheckRunLost();
+                },
             () => bounceFeedback?.PlayFeedbacks(),
             () => hitFeedback?.PlayFeedbacks()
         );
