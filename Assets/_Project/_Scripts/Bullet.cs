@@ -25,8 +25,6 @@ public class Bullet : MonoBehaviour
     [SerializeField] private int trailCapVertices;
     [SerializeField] private float trailWidth = 0.05f;
 
-    private BulletFireEffect fireEffect;
-
     private Vector2 direction;
     private Action onFinished;
     private Action onBounced;
@@ -39,11 +37,6 @@ public class Bullet : MonoBehaviour
     private bool active;
 
     private readonly List<Enemy> killedEnemyList = new();
-
-    private void Awake()
-    {
-        fireEffect = GetComponent<BulletFireEffect>();
-    }
 
     public void Initialize(
         Vector2 shootDirection,
@@ -67,7 +60,6 @@ public class Bullet : MonoBehaviour
         ActiveCount++;
 
         SetupTrail();
-        fireEffect?.ResetFire();
     }
 
     private void OnDestroy()
@@ -147,7 +139,6 @@ public class Bullet : MonoBehaviour
 
                     killStreak++;
                     OnEnemyKilled?.Invoke(hit.point, killStreak);
-                    fireEffect?.SetKillStreak(killStreak);
                 }
             }
 

@@ -50,10 +50,12 @@ public class Player : Singleton<Player>
     private Quaternion baseRotation;
     private Camera mainCamera;
     private bool canShoot = true;
-
+    private int totalBounces;
+    private int ammoUsed;
     public int Ammo => ammo;
+    public int AmmoUsed => ammoUsed;
     public int MaxBounces => maxBounces;
-
+    public int TotalBounces => totalBounces;
     private void Awake()
     {
         mainCamera = Camera.main;
@@ -271,7 +273,7 @@ public class Player : Singleton<Player>
 
         canShoot = false;
         ammo--;
-
+        ammoUsed++;
         OnAmmoChanged?.Invoke(ammo);
 
         Vector2 direction = firePoint.right;
@@ -292,7 +294,11 @@ public class Player : Singleton<Player>
                     canShoot = true;
                     RoundManager.Instance.CheckRunLost();
                 },
-            () => bounceFeedback?.PlayFeedbacks(),
+            () =>
+            {
+                totalBounces++;
+                bounceFeedback?.PlayFeedbacks();
+            },
             () => hitFeedback?.PlayFeedbacks()
         );
 
@@ -377,5 +383,11 @@ public class Player : Singleton<Player>
         );
 
         rb.linearVelocity = velocity;
+    }
+    public void ResetPlayer()
+    {
+        totalBounces = 0;
+        ammoUsed = 0;
+        transform.position = Vector3.zero;
     }
 }

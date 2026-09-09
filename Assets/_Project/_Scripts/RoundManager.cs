@@ -42,12 +42,15 @@ public class RoundManager : Singleton<RoundManager>
 
     public int CurrentRound { get; private set; }
     public bool IsRoundActive { get; private set; }
+    public int HighestKillStreak => highestKillStreak;
 
+    private int highestKillStreak;
+    private int pendingEnemySpawns;
     private void Start()
     {
         Enemy.OnKilled += Enemy_OnKilled;
         Enemy.OnFinishedDeath += Enemy_OnFinishedDeath;
-
+        Bullet.OnEnemyKilled += Bullet_OnEnemyKilled;
         StartRun();
     }
 
@@ -55,13 +58,21 @@ public class RoundManager : Singleton<RoundManager>
     {
         Enemy.OnKilled -= Enemy_OnKilled;
         Enemy.OnFinishedDeath -= Enemy_OnFinishedDeath;
+        Bullet.OnEnemyKilled -= Bullet_OnEnemyKilled;
+    }
+
+    private void Bullet_OnEnemyKilled(Vector3 position, int killStreak)
+    {
+        highestKillStreak = Mathf.Max(highestKillStreak, killStreak);
     }
 
     public void StartRun()
     {
         CurrentRound = 0;
+        highestKillStreak = 0;
         activeEnemies.Clear();
 
+        Player.Instance.ResetPlayer();
         StartNextRound();
     }
 
@@ -218,15 +229,19 @@ public class RoundManager : Singleton<RoundManager>
 
         return available[^1];
     }
-
+    public void RegisterPendingEnemySpawn()
+    {
+        pendingEnemySpawns++;
+    }
     public void RegisterEnemy(Enemy enemy)
     {
         if (enemy == null)
             return;
 
         activeEnemies.Add(enemy);
-    }
 
+        pendingEnemySpawns = Mathf.Max(0, pendingEnemySpawns - 1);
+    }
     private void Enemy_OnKilled(Vector3 position)
     {
         CheckRoundComplete();
@@ -237,18 +252,22 @@ public class RoundManager : Singleton<RoundManager>
         activeEnemies.Remove(enemy);
         CheckRoundComplete();
     }
-
     public void CheckRoundComplete()
     {
         if (!IsRoundActive)
             return;
 
-        if (activeEnemies.Count > 0)
+        if (pendingEnemySpawns > 0)
             return;
+
+        foreach (Enemy enemy in activeEnemies)
+        {
+            if (enemy != null && !enemy.IsDead)
+                return;
+        }
 
         EndRound();
     }
-
     private void EndRound()
     {
         if (!IsRoundActive)
@@ -267,7 +286,13 @@ public class RoundManager : Singleton<RoundManager>
         {
             if (enemy != null && !enemy.IsDead)
             {
-                UIManager.Instance.Open<CanvasPremiumShop>();
+                UIManager.Instance.Open<CanvasGameOver>().SetStats(
+                    Player.Instance.AmmoUsed,
+                    Player.Instance.TotalBounces,
+                    UIManager.Instance.GetCanvas<CanvasGameplay>().GetMoney(),
+                    HighestKillStreak,
+                    CurrentRound
+                );
                 return;
             }
         }

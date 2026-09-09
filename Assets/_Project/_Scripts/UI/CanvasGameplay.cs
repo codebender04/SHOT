@@ -67,6 +67,10 @@ public class CanvasGameplay : UICanvas
 
         txtMoneyCounter.text = $"${money}";
     }
+    public int GetMoney()
+    {
+        return money;
+    }
     private void RefreshMoney()
     {
         moneyStack.Refresh();

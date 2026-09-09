@@ -7,13 +7,18 @@ public class SpawnerEnemy : Enemy
 
     protected override void OnDeathStarted()
     {
-        if (enemyPrefab == null) return;
+        if (enemyPrefab == null)
+            return;
+
+        RoundManager.Instance.RegisterPendingEnemySpawn();
 
         Invoke(nameof(SpawnEnemy), 0.2f);
     }
+
     private void SpawnEnemy()
     {
         Enemy spawnedEnemy = Instantiate(enemyPrefab, transform.position, Quaternion.identity);
+
         RoundManager.Instance.RegisterEnemy(spawnedEnemy);
     }
 }
