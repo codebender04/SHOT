@@ -68,7 +68,8 @@ public class CanvasPremiumShop : UICanvas
 
         sequence.OnComplete(() =>
         {
-            gameObject.SetActive(false);
+            CloseImmediate();
+            RoundManager.Instance.StartRun();
         });
     }
 }

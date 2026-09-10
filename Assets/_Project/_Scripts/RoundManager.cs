@@ -39,13 +39,12 @@ public class RoundManager : Singleton<RoundManager>
     public event Action<int> OnRoundStart;
 
     private readonly HashSet<Enemy> activeEnemies = new();
-
+    private List<Collectible> activeCollectibles = new();
     public int CurrentRound { get; private set; }
     public bool IsRoundActive { get; private set; }
     public int HighestKillStreak => highestKillStreak;
 
     private int highestKillStreak;
-    private int pendingEnemySpawns;
     private void Start()
     {
         Enemy.OnKilled += Enemy_OnKilled;
@@ -70,7 +69,16 @@ public class RoundManager : Singleton<RoundManager>
     {
         CurrentRound = 0;
         highestKillStreak = 0;
+        foreach (Enemy enemy in activeEnemies)
+        {
+            Destroy(enemy.gameObject);
+        }
         activeEnemies.Clear();
+        foreach (Collectible collectible in activeCollectibles)
+        {
+            Destroy(collectible.gameObject);
+        }
+        activeCollectibles.Clear();
 
         Player.Instance.ResetPlayer();
         StartNextRound();
@@ -123,11 +131,7 @@ public class RoundManager : Singleton<RoundManager>
 
             Vector2 position = ArenaManager.Instance.GetRandomPosition();
 
-            Enemy enemy = Instantiate(
-                enemyType.prefab,
-                position,
-                Quaternion.identity
-            );
+            Enemy enemy = Instantiate(enemyType.prefab, position, Quaternion.identity);
 
             RegisterEnemy(enemy);
 
@@ -180,18 +184,15 @@ public class RoundManager : Singleton<RoundManager>
         if (UnityEngine.Random.value > collectibleChance)
             return;
 
-        CollectibleType collectible = GetRandomCollectible();
+        CollectibleType collectibleType = GetRandomCollectible();
 
-        if (collectible == null)
+        if (collectibleType == null)
             return;
 
         Vector2 position = ArenaManager.Instance.GetRandomPosition();
 
-        Instantiate(
-            collectible.prefab,
-            position,
-            Quaternion.identity
-        );
+        Collectible collectible = Instantiate(collectibleType.prefab, position, Quaternion.identity);
+        activeCollectibles.Add(collectible);
     }
 
     private CollectibleType GetRandomCollectible()
@@ -229,18 +230,12 @@ public class RoundManager : Singleton<RoundManager>
 
         return available[^1];
     }
-    public void RegisterPendingEnemySpawn()
-    {
-        pendingEnemySpawns++;
-    }
     public void RegisterEnemy(Enemy enemy)
     {
         if (enemy == null)
             return;
 
         activeEnemies.Add(enemy);
-
-        pendingEnemySpawns = Mathf.Max(0, pendingEnemySpawns - 1);
     }
     private void Enemy_OnKilled(Vector3 position)
     {
@@ -255,9 +250,6 @@ public class RoundManager : Singleton<RoundManager>
     public void CheckRoundComplete()
     {
         if (!IsRoundActive)
-            return;
-
-        if (pendingEnemySpawns > 0)
             return;
 
         foreach (Enemy enemy in activeEnemies)

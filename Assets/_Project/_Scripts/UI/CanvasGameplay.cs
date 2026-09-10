@@ -62,9 +62,13 @@ public class CanvasGameplay : UICanvas
     public void ChangeMoney(int value)
     {
         money = Mathf.Max(0, money + value);
-
         moneyStack.Change(value);
-
+        txtMoneyCounter.text = $"${money}";
+    }
+    public void SetMoney(int value)
+    {
+        money = Mathf.Max(0, value);
+        moneyStack.Set(value);
         txtMoneyCounter.text = $"${money}";
     }
     public int GetMoney()

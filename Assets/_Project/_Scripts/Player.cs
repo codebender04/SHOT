@@ -388,6 +388,8 @@ public class Player : Singleton<Player>
     {
         totalBounces = 0;
         ammoUsed = 0;
-        transform.position = Vector3.zero;
+        ChangeAmmo(5 - ammo);
+        UIManager.Instance.GetCanvas<CanvasGameplay>().SetMoney(0);
+        rb.position = Vector3.zero;
     }
 }

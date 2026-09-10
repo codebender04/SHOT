@@ -28,6 +28,16 @@ public class UIStack : MonoBehaviour
 
         Refresh();
     }
+    public void Set(int value)
+    {
+        Clear();
+        if (value > 0)
+        {
+            for (int i = 0; i < value; i++)
+                Instantiate(itemPrefab, transform);
+        }
+        Refresh();
+    }
 
     public void Refresh()
     {
