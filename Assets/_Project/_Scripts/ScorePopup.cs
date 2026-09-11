@@ -120,7 +120,7 @@ public class ScorePopup : MonoBehaviour
 
         sequence.OnComplete(() =>
         {
-            gameObject.SetActive(false);
+            Destroy(gameObject);
         });
     }
 

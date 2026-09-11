@@ -17,11 +17,7 @@ public class SpawnerEnemy : Enemy
         if (enemyPrefab == null)
             return;
 
-        spawnedEnemy = Instantiate(
-            enemyPrefab,
-            transform.position,
-            Quaternion.identity
-        );
+        spawnedEnemy = Instantiate(enemyPrefab, transform.position, Quaternion.identity);
 
         spawnedEnemy.gameObject.SetActive(false);
 
@@ -33,6 +29,10 @@ public class SpawnerEnemy : Enemy
         if (spawnedEnemy == null)
             return;
 
+        Invoke(nameof(EnableSpawnedEnemy), 0.2f);
+    }
+    private void EnableSpawnedEnemy()
+    {
         spawnedEnemy.transform.position = transform.position;
         spawnedEnemy.gameObject.SetActive(true);
     }

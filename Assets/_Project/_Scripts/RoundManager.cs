@@ -39,17 +39,20 @@ public class RoundManager : Singleton<RoundManager>
     public event Action<int> OnRoundStart;
 
     private readonly HashSet<Enemy> activeEnemies = new();
-    private List<Collectible> activeCollectibles = new();
+    private readonly List<Collectible> activeCollectibles = new();
+
     public int CurrentRound { get; private set; }
     public bool IsRoundActive { get; private set; }
     public int HighestKillStreak => highestKillStreak;
 
     private int highestKillStreak;
+
     private void Start()
     {
         Enemy.OnKilled += Enemy_OnKilled;
         Enemy.OnFinishedDeath += Enemy_OnFinishedDeath;
         Bullet.OnEnemyKilled += Bullet_OnEnemyKilled;
+
         StartRun();
     }
 
@@ -67,20 +70,28 @@ public class RoundManager : Singleton<RoundManager>
 
     public void StartRun()
     {
+        IsRoundActive = false;
         CurrentRound = 0;
         highestKillStreak = 0;
+
         foreach (Enemy enemy in activeEnemies)
         {
-            Destroy(enemy.gameObject);
+            if (enemy != null)
+                Destroy(enemy.gameObject);
         }
+
         activeEnemies.Clear();
+
         foreach (Collectible collectible in activeCollectibles)
         {
-            Destroy(collectible.gameObject);
+            if (collectible != null)
+                Destroy(collectible.gameObject);
         }
+
         activeCollectibles.Clear();
 
         Player.Instance.ResetPlayer();
+
         StartNextRound();
     }
 
@@ -88,6 +99,12 @@ public class RoundManager : Singleton<RoundManager>
     {
         if (IsRoundActive)
             return;
+
+        if (Player.Instance.Ammo <= 0)
+        {
+            GameOver();
+            return;
+        }
 
         CurrentRound++;
         IsRoundActive = true;
@@ -131,7 +148,11 @@ public class RoundManager : Singleton<RoundManager>
 
             Vector2 position = ArenaManager.Instance.GetRandomPosition();
 
-            Enemy enemy = Instantiate(enemyType.prefab, position, Quaternion.identity);
+            Enemy enemy = Instantiate(
+                enemyType.prefab,
+                position,
+                Quaternion.identity
+            );
 
             RegisterEnemy(enemy);
 
@@ -153,6 +174,9 @@ public class RoundManager : Singleton<RoundManager>
                 continue;
 
             if (enemyType.cost > budget)
+                continue;
+
+            if (enemyType.spawnWeight <= 0f)
                 continue;
 
             available.Add(enemyType);
@@ -191,7 +215,12 @@ public class RoundManager : Singleton<RoundManager>
 
         Vector2 position = ArenaManager.Instance.GetRandomPosition();
 
-        Collectible collectible = Instantiate(collectibleType.prefab, position, Quaternion.identity);
+        Collectible collectible = Instantiate(
+            collectibleType.prefab,
+            position,
+            Quaternion.identity
+        );
+
         activeCollectibles.Add(collectible);
     }
 
@@ -199,15 +228,18 @@ public class RoundManager : Singleton<RoundManager>
     {
         List<CollectibleType> available = new();
 
-        foreach (CollectibleType collectible in collectibleTypes)
+        foreach (CollectibleType collectibleType in collectibleTypes)
         {
-            if (collectible.prefab == null)
+            if (collectibleType.prefab == null)
                 continue;
 
-            if (CurrentRound < collectible.unlockRound)
+            if (CurrentRound < collectibleType.unlockRound)
                 continue;
 
-            available.Add(collectible);
+            if (collectibleType.spawnWeight <= 0f)
+                continue;
+
+            available.Add(collectibleType);
         }
 
         if (available.Count == 0)
@@ -215,21 +247,22 @@ public class RoundManager : Singleton<RoundManager>
 
         float totalWeight = 0f;
 
-        foreach (CollectibleType collectible in available)
-            totalWeight += collectible.spawnWeight;
+        foreach (CollectibleType collectibleType in available)
+            totalWeight += collectibleType.spawnWeight;
 
         float roll = UnityEngine.Random.value * totalWeight;
 
-        foreach (CollectibleType collectible in available)
+        foreach (CollectibleType collectibleType in available)
         {
-            roll -= collectible.spawnWeight;
+            roll -= collectibleType.spawnWeight;
 
             if (roll <= 0f)
-                return collectible;
+                return collectibleType;
         }
 
         return available[^1];
     }
+
     public void RegisterEnemy(Enemy enemy)
     {
         if (enemy == null)
@@ -237,6 +270,7 @@ public class RoundManager : Singleton<RoundManager>
 
         activeEnemies.Add(enemy);
     }
+
     private void Enemy_OnKilled(Vector3 position)
     {
         CheckRoundComplete();
@@ -247,6 +281,7 @@ public class RoundManager : Singleton<RoundManager>
         activeEnemies.Remove(enemy);
         CheckRoundComplete();
     }
+
     public void CheckRoundComplete()
     {
         if (!IsRoundActive)
@@ -260,6 +295,7 @@ public class RoundManager : Singleton<RoundManager>
 
         EndRound();
     }
+
     private void EndRound()
     {
         if (!IsRoundActive)
@@ -269,6 +305,7 @@ public class RoundManager : Singleton<RoundManager>
 
         UIManager.Instance.Open<CanvasShop>();
     }
+
     public void CheckRunLost()
     {
         if (Player.Instance.Ammo > 0)
@@ -278,15 +315,25 @@ public class RoundManager : Singleton<RoundManager>
         {
             if (enemy != null && !enemy.IsDead)
             {
-                UIManager.Instance.Open<CanvasGameOver>().SetStats(
-                    Player.Instance.AmmoUsed,
-                    Player.Instance.TotalBounces,
-                    UIManager.Instance.GetCanvas<CanvasGameplay>().GetMoney(),
-                    HighestKillStreak,
-                    CurrentRound
-                );
+                GameOver();
                 return;
             }
         }
+    }
+
+    private void GameOver()
+    {
+        IsRoundActive = false;
+
+        CanvasGameOver gameOver =
+            UIManager.Instance.Open<CanvasGameOver>();
+
+        gameOver.SetStats(
+            Player.Instance.AmmoUsed,
+            Player.Instance.TotalBounces,
+            UIManager.Instance.GetCanvas<CanvasGameplay>().GetMoney(),
+            HighestKillStreak,
+            CurrentRound
+        );
     }
 }

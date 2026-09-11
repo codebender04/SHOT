@@ -310,7 +310,11 @@ public class Player : Singleton<Player>
         ammo = Mathf.Max(0, ammo + value);
         OnAmmoChanged?.Invoke(ammo);
     }
-
+    private void SetAmmo(int value)
+    {
+        ammo = Mathf.Max(0, value);
+        OnAmmoChanged?.Invoke(ammo);
+    }
     public void IncreaseMaxBounces(int amount = 1)
     {
         maxBounces += amount;
@@ -388,8 +392,17 @@ public class Player : Singleton<Player>
     {
         totalBounces = 0;
         ammoUsed = 0;
-        ChangeAmmo(5 - ammo);
+        canShoot = true;
+
+        SetAmmo(5);
+
         UIManager.Instance.GetCanvas<CanvasGameplay>().SetMoney(0);
-        rb.position = Vector3.zero;
+
+        rb.linearVelocity = Vector2.zero;
+        rb.angularVelocity = 0f;
+        rb.position = Vector2.zero;
+
+        transform.position = Vector3.zero;
+        transform.localRotation = baseRotation;
     }
 }

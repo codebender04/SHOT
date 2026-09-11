@@ -77,7 +77,7 @@ public class CanvasGameOver : UICanvas
 
     private void OnPremiumShop()
     {
-        gameObject.SetActive(false);
+        CloseImmediate();
         UIManager.Instance.Open<CanvasPremiumShop>();
     }
 
