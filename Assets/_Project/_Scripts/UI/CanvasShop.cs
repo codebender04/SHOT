@@ -113,7 +113,7 @@ public class CanvasShop : UICanvas
             panel.DOAnchorPos(
                 targetPosition,
                 slideDuration
-            ).SetEase(Ease.OutCubic)
+            ).SetEase(Ease.OutBack)
         );
 
         sequence.SetUpdate(true);

@@ -2077,7 +2077,7 @@ MonoBehaviour:
         Owner: {fileID: 337593245}
         DebugActive: 0
         FlashColor: {r: 1, g: 0.35138527, b: 0.2783019, a: 1}
-        FlashDuration: 0.04
+        FlashDuration: 0.1
         FlashAlpha: 0.1
         FlashID: 0
     - rid: 6417429475076342120
@@ -5506,7 +5506,7 @@ MonoBehaviour:
   bouncePrice: 1
   bouncePriceIncrease: 2
   ammoPrice: 2
-  ammoPriceIncrease: 3
+  ammoPriceIncrease: 2
   slideDistance: 600
   slideDuration: 0.15
 --- !u!1 &1030993919
@@ -7203,6 +7203,10 @@ MonoBehaviour:
   txtBulletCounter: {fileID: 119259781}
   moneyStack: {fileID: 1097084404}
   txtMoneyCounter: {fileID: 463490460}
+  bulletSpawnDelay: 0.06
+  bulletPopDuration: 0.2
+  bulletPopScale: 1.2
+  bulletRemoveDuration: 0.12
 --- !u!1 &1230310841
 GameObject:
   m_ObjectHideFlags: 0
