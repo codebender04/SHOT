@@ -629,6 +629,104 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 3078593413650149178, guid: f6a84950d87a6d842a9e92a1130c869d, type: 3}
   m_PrefabInstance: {fileID: 176939228}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &219755554
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 219755555}
+  - component: {fileID: 219755558}
+  - component: {fileID: 219755557}
+  - component: {fileID: 219755556}
+  m_Layer: 5
+  m_Name: Image - Custom Cursor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &219755555
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 219755554}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 1849518300}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 34.375, y: 34.375}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &219755556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 219755554}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b61ac812a3660534c8c975f2cd315bc3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CustomCursor
+  cursor: {fileID: 219755555}
+  canvas: {fileID: 1849518299}
+  rotationAmount: 0.08
+  maxRotation: 8
+  rotationSmoothness: 15
+  clickScale: 1.25
+  clickScaleDuration: 0.12
+  clickShakeStrength: 4
+  clickShakeVibrato: 8
+  clickShakeDuration: 0.15
+--- !u!114 &219755557
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 219755554}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: 4ef097472a888d446961a0e8ea45192f, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &219755558
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 219755554}
+  m_CullTransparentMesh: 1
 --- !u!1 &222483835
 GameObject:
   m_ObjectHideFlags: 0
@@ -980,6 +1078,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 963347805}
   - {fileID: 1886670026}
   m_Father: {fileID: 1849518300}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1064,10 +1163,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CanvasPremiumShop
   destroyOnClose: 0
+  background: {fileID: 963347806}
   panel: {fileID: 1886670026}
   btnStart: {fileID: 1478993745}
-  slideDistance: 600
-  slideDuration: 0.4
+  backgroundFadeDuration: 0.4
+  slideDistance: 800
+  slideDuration: 0.2
 --- !u!1 &277682440
 GameObject:
   m_ObjectHideFlags: 0
@@ -4102,7 +4203,7 @@ GameObject:
   - component: {fileID: 796461293}
   - component: {fileID: 796461294}
   m_Layer: 3
-  m_Name: Collider
+  m_Name: Top Collider
   m_TagString: Wall
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4300,7 +4401,7 @@ GameObject:
   - component: {fileID: 810470204}
   - component: {fileID: 810470205}
   m_Layer: 3
-  m_Name: Collider
+  m_Name: Bottom Collider
   m_TagString: Wall
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4560,7 +4661,7 @@ GameObject:
   - component: {fileID: 881588598}
   - component: {fileID: 881588599}
   m_Layer: 3
-  m_Name: Collider
+  m_Name: Left Collider
   m_TagString: Wall
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5066,6 +5167,81 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &963347804
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 963347805}
+  - component: {fileID: 963347807}
+  - component: {fileID: 963347806}
+  m_Layer: 5
+  m_Name: Background
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &963347805
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963347804}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 254415592}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &963347806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963347804}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.9921569, g: 0.8431373, b: 0.42352945, a: 0.3137255}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &963347807
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963347804}
+  m_CullTransparentMesh: 1
 --- !u!1 &970438525
 GameObject:
   m_ObjectHideFlags: 0
@@ -6873,10 +7049,10 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1425461292}
-  - {fileID: 1563524236}
-  - {fileID: 881588598}
   - {fileID: 796461293}
   - {fileID: 810470204}
+  - {fileID: 881588598}
+  - {fileID: 1563524236}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1192092091
@@ -6893,9 +7069,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ArenaManager
   arenaVisual: {fileID: 1192092090}
   gameplayCamera: {fileID: 519420031}
+  topWall: {fileID: 796461294}
+  bottomWall: {fileID: 810470205}
+  leftWall: {fileID: 881588599}
+  rightWall: {fileID: 1563524237}
+  wallInset: 0.25
   baseSize: {x: 3, y: 3}
   sizeIncrease: {x: 1, y: 1}
   spawnPadding: 0.5
+  roundsPerSizeIncrease: 5
   cameraPadding: 1.5
 --- !u!1 &1212772819
 GameObject:
@@ -13774,6 +13956,18 @@ MonoBehaviour:
     unlockRound: 0
     spawnWeight: 1
   collectibleSpawnPadding: 0.5
+  obstaclePrefab: {fileID: 3250454887028583283, guid: 636dcd5567cd41348a2fd7df30a55118, type: 3}
+  obstacleBaseChance: 0.2
+  obstacleChanceIncreasePerRound: 0.05
+  obstacleMaxChance: 1
+  obstacleBaseMaxCount: 1
+  obstacleCountIncreaseEveryRounds: 5
+  obstacleMaxCount: 6
+  obstacleSpawnPadding: 1
+  obstaclePositionAttempts: 20
+  obstacleBlockedLayers:
+    serializedVersion: 2
+    m_Bits: 448
 --- !u!4 &1522615065
 Transform:
   m_ObjectHideFlags: 0
@@ -14178,7 +14372,7 @@ GameObject:
   - component: {fileID: 1563524236}
   - component: {fileID: 1563524237}
   m_Layer: 3
-  m_Name: Collider
+  m_Name: Right Collider
   m_TagString: Wall
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -21257,7 +21451,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 141604425
   m_SortingOrder: 0
@@ -21279,6 +21473,7 @@ RectTransform:
   - {fileID: 254415592}
   - {fileID: 1191785895}
   - {fileID: 1800861685}
+  - {fileID: 219755555}
   - {fileID: 1052574297}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

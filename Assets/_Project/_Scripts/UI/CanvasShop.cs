@@ -43,8 +43,8 @@ public class CanvasShop : UICanvas
         btnBuyAmmo.onClick.AddListener(BuyAmmo);
         btnBuyAmmo2.onClick.AddListener(BuyAmmo);
 
-        txtBouncePrice.text = $"{bouncePrice}";
-        txtAmmoPrice.text = $"{ammoPrice}";
+        txtBouncePrice.text = $"${bouncePrice}";
+        txtAmmoPrice.text = $"${ammoPrice}";
         CloseImmediate();
     }
 

@@ -6,10 +6,18 @@ public class ArenaManager : Singleton<ArenaManager>
     [SerializeField] private Transform arenaVisual;
     [SerializeField] private Camera gameplayCamera;
 
+    [Header("Walls")]
+    [SerializeField] private Collider2D topWall;
+    [SerializeField] private Collider2D bottomWall;
+    [SerializeField] private Collider2D leftWall;
+    [SerializeField] private Collider2D rightWall;
+    [SerializeField] private float wallInset = 0.15f;
+
     [Header("Arena")]
     [SerializeField] private Vector2 baseSize = new Vector2(3f, 3f);
     [SerializeField] private Vector2 sizeIncrease = new Vector2(1f, 1f);
     [SerializeField] private float spawnPadding = 0.5f;
+    [SerializeField] private int roundsPerSizeIncrease = 5;
 
     [Header("Camera")]
     [SerializeField] private float cameraPadding = 0.5f;
@@ -24,11 +32,22 @@ public class ArenaManager : Singleton<ArenaManager>
         SetArenaSize(0);
     }
 
+    public void SetArenaSizeForRound(int round)
+    {
+        int tier = Mathf.Max(
+            0,
+            (round - 1) / roundsPerSizeIncrease
+        );
+
+        SetArenaSize(tier);
+    }
+
     public void SetArenaSize(int tier)
     {
         Size = baseSize + sizeIncrease * tier;
 
         UpdateVisual();
+        UpdateWalls();
         UpdateCamera();
     }
 
@@ -46,16 +65,92 @@ public class ArenaManager : Singleton<ArenaManager>
         arenaVisual.localScale = scale;
     }
 
+    private void UpdateWalls()
+    {
+        Vector2 center = transform.position;
+        Vector2 halfSize = Size * 0.5f;
+
+        PositionHorizontalWall(
+            topWall,
+            center + Vector2.up * (halfSize.y - wallInset)
+        );
+
+        PositionHorizontalWall(
+            bottomWall,
+            center - Vector2.up * (halfSize.y - wallInset)
+        );
+
+        PositionVerticalWall(
+            leftWall,
+            center - Vector2.right * (halfSize.x - wallInset)
+        );
+
+        PositionVerticalWall(
+            rightWall,
+            center + Vector2.right * (halfSize.x - wallInset)
+        );
+    }
+
+    private void PositionHorizontalWall(
+        Collider2D wall,
+        Vector2 targetCenter)
+    {
+        if (wall == null)
+            return;
+
+        float halfThickness = wall.bounds.extents.y;
+
+        float y = targetCenter.y;
+
+        if (wall == topWall)
+            y += halfThickness;
+
+        if (wall == bottomWall)
+            y -= halfThickness;
+
+        wall.transform.position = new Vector3(
+            targetCenter.x,
+            y,
+            wall.transform.position.z
+        );
+    }
+
+    private void PositionVerticalWall(
+        Collider2D wall,
+        Vector2 targetCenter)
+    {
+        if (wall == null)
+            return;
+
+        float halfThickness = wall.bounds.extents.x;
+
+        float x = targetCenter.x;
+
+        if (wall == leftWall)
+            x -= halfThickness;
+
+        if (wall == rightWall)
+            x += halfThickness;
+
+        wall.transform.position = new Vector3(
+            x,
+            targetCenter.y,
+            wall.transform.position.z
+        );
+    }
+
     private void UpdateCamera()
     {
         if (gameplayCamera == null)
             return;
 
         float verticalSize = Size.y * 0.5f;
-        float horizontalSize = Size.x * 0.5f / gameplayCamera.aspect;
+        float horizontalSize =
+            Size.x * 0.5f / gameplayCamera.aspect;
 
         gameplayCamera.orthographicSize =
-            Mathf.Max(verticalSize, horizontalSize) + cameraPadding;
+            Mathf.Max(verticalSize, horizontalSize) +
+            cameraPadding;
     }
 
     public Vector2 GetRandomPosition()
@@ -63,21 +158,37 @@ public class ArenaManager : Singleton<ArenaManager>
         Vector2 halfSize = Size * 0.5f;
 
         return (Vector2)transform.position + new Vector2(
-            Random.Range(-halfSize.x + spawnPadding, halfSize.x - spawnPadding),
-            Random.Range(-halfSize.y + spawnPadding, halfSize.y - spawnPadding)
+            Random.Range(
+                -halfSize.x + spawnPadding,
+                halfSize.x - spawnPadding
+            ),
+            Random.Range(
+                -halfSize.y + spawnPadding,
+                halfSize.y - spawnPadding
+            )
         );
     }
-    public Vector2 GetRandomPosition(Vector2 origin, float maxDistance, float padding)
+
+    public Vector2 GetRandomPosition(
+        Vector2 origin,
+        float maxDistance,
+        float padding)
     {
         Vector2 halfSize = Size * 0.5f;
 
         for (int i = 0; i < 20; i++)
         {
-            Vector2 offset = Random.insideUnitCircle * maxDistance;
+            Vector2 offset =
+                Random.insideUnitCircle * maxDistance;
+
             Vector2 position = origin + offset;
 
-            if (Mathf.Abs(position.x - transform.position.x) <= halfSize.x - padding &&
-                Mathf.Abs(position.y - transform.position.y) <= halfSize.y - padding)
+            if (Mathf.Abs(
+                    position.x - transform.position.x) <=
+                halfSize.x - padding &&
+                Mathf.Abs(
+                    position.y - transform.position.y) <=
+                halfSize.y - padding)
             {
                 return position;
             }
@@ -85,15 +196,20 @@ public class ArenaManager : Singleton<ArenaManager>
 
         return GetRandomPosition();
     }
-    public bool IsInsideArena(Vector2 position, float padding = 0f)
+
+    public bool IsInsideArena(
+        Vector2 position,
+        float padding = 0f)
     {
         Vector2 localPosition =
             position - (Vector2)transform.position;
 
         Vector2 halfSize = Size * 0.5f;
 
-        return Mathf.Abs(localPosition.x) <= halfSize.x - padding &&
-               Mathf.Abs(localPosition.y) <= halfSize.y - padding;
+        return Mathf.Abs(localPosition.x) <=
+                   halfSize.x - padding &&
+               Mathf.Abs(localPosition.y) <=
+                   halfSize.y - padding;
     }
 
     public Bounds GetBounds()

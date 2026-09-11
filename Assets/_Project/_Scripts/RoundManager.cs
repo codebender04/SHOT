@@ -36,10 +36,23 @@ public class RoundManager : Singleton<RoundManager>
     [SerializeField] private List<CollectibleType> collectibleTypes = new();
     [SerializeField] private float collectibleSpawnPadding = 0.5f;
 
+    [Header("Obstacles")]
+    [SerializeField] private GameObject obstaclePrefab;
+    [SerializeField, Range(0f, 1f)] private float obstacleBaseChance = 0.2f;
+    [SerializeField, Range(0f, 1f)] private float obstacleChanceIncreasePerRound = 0.05f;
+    [SerializeField, Range(0f, 1f)] private float obstacleMaxChance = 1f;
+    [SerializeField] private int obstacleBaseMaxCount = 1;
+    [SerializeField] private int obstacleCountIncreaseEveryRounds = 5;
+    [SerializeField] private int obstacleMaxCount = 6;
+    [SerializeField] private float obstacleSpawnPadding = 1f;
+    [SerializeField] private int obstaclePositionAttempts = 20;
+    [SerializeField] private LayerMask obstacleBlockedLayers;
+
     public event Action<int> OnRoundStart;
 
     private readonly HashSet<Enemy> activeEnemies = new();
     private readonly List<Collectible> activeCollectibles = new();
+    private readonly List<GameObject> activeObstacles = new();
 
     public int CurrentRound { get; private set; }
     public bool IsRoundActive { get; private set; }
@@ -90,11 +103,18 @@ public class RoundManager : Singleton<RoundManager>
 
         activeCollectibles.Clear();
 
+        foreach (GameObject obstacle in activeObstacles)
+        {
+            if (obstacle != null)
+                Destroy(obstacle);
+        }
+
+        activeObstacles.Clear();
+
         Player.Instance.ResetPlayer();
 
         StartNextRound();
     }
-
     public void StartNextRound()
     {
         if (IsRoundActive)
@@ -107,19 +127,22 @@ public class RoundManager : Singleton<RoundManager>
         }
 
         CurrentRound++;
+
+        ArenaManager.Instance.SetArenaSizeForRound(CurrentRound);
+
         IsRoundActive = true;
 
         SpawnRound();
 
         OnRoundStart?.Invoke(CurrentRound);
     }
-
     private void SpawnRound()
     {
         int budget = GetEnemyBudget(CurrentRound);
 
         SpawnEnemies(budget);
         SpawnCollectible();
+        SpawnObstacles();
     }
 
     private int GetEnemyBudget(int round)
@@ -261,6 +284,68 @@ public class RoundManager : Singleton<RoundManager>
         }
 
         return available[^1];
+    }
+
+    private void SpawnObstacles()
+    {
+        if (obstaclePrefab == null)
+            return;
+
+        float chance = Mathf.Min(
+            obstacleBaseChance +
+            (CurrentRound - 1) * obstacleChanceIncreasePerRound,
+            obstacleMaxChance
+        );
+
+        if (UnityEngine.Random.value > chance)
+            return;
+
+        int maxCount = Mathf.Min(
+            obstacleBaseMaxCount +
+            (CurrentRound - 1) / Mathf.Max(1, obstacleCountIncreaseEveryRounds),
+            obstacleMaxCount
+        );
+
+        int count = UnityEngine.Random.Range(1, maxCount + 1);
+
+        for (int i = 0; i < count; i++)
+        {
+            if (TryGetObstaclePosition(out Vector2 position))
+            {
+                float rotation = UnityEngine.Random.Range(0f, 360f);
+
+                GameObject obstacle = Instantiate(
+                    obstaclePrefab,
+                    position,
+                    Quaternion.Euler(0f, 0f, rotation)
+                );
+
+                activeObstacles.Add(obstacle);
+            }
+        }
+    }
+
+    private bool TryGetObstaclePosition(out Vector2 position)
+    {
+        for (int i = 0; i < obstaclePositionAttempts; i++)
+        {
+            Vector2 candidate = ArenaManager.Instance.GetRandomPosition();
+
+            Collider2D blockedCollider = Physics2D.OverlapCircle(
+                candidate,
+                obstacleSpawnPadding,
+                obstacleBlockedLayers
+            );
+
+            if (blockedCollider != null)
+                continue;
+
+            position = candidate;
+            return true;
+        }
+
+        position = Vector2.zero;
+        return false;
     }
 
     public void RegisterEnemy(Enemy enemy)

@@ -102,7 +102,7 @@ GameObject:
   - component: {fileID: 1061370780878616076}
   - component: {fileID: 2044399098282143860}
   - component: {fileID: 8996984908878843832}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Money Collectible
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -5,19 +5,23 @@ using UnityEngine.UI;
 public class CanvasPremiumShop : UICanvas
 {
     [Header("References")]
+    [SerializeField] private Image background;
     [SerializeField] private RectTransform panel;
     [SerializeField] private Button btnStart;
 
     [Header("Animation")]
+    [SerializeField] private float backgroundFadeDuration = 0.4f;
     [SerializeField] private float slideDistance = 600f;
     [SerializeField] private float slideDuration = 0.4f;
 
     private Vector2 targetPosition;
+    private Color backgroundTargetColor;
     private Sequence sequence;
 
     private void Awake()
     {
         targetPosition = panel.anchoredPosition;
+        backgroundTargetColor = background.color;
 
         btnStart.onClick.AddListener(OnStart);
         CloseImmediate();
@@ -58,6 +62,13 @@ public class CanvasPremiumShop : UICanvas
         sequence = DOTween.Sequence();
 
         sequence.Append(
+            background.DOFade(
+                backgroundTargetColor.a,
+                backgroundFadeDuration
+            ).SetEase(Ease.OutQuad)
+        );
+
+        sequence.Join(
             panel.DOAnchorPos(
                 targetPosition + Vector2.up * slideDistance,
                 slideDuration
