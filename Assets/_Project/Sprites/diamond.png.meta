@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 2fd5ed2d6fa682a4ea870687671acc20
+guid: fdb41cc45c9e5a84595d0606d8cd4c95
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8616785929463225449
-    second: fire texture_0
+      213: 6586461156150141773
+    second: diamond_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:

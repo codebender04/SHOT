@@ -20,6 +20,7 @@ public class Player : Singleton<Player>
     [Header("Shooting")]
     [SerializeField] private int ammo = 5;
     [SerializeField] private int maxBounces = 0;
+    [SerializeField] private float biggerBulletScale = 2f;
 
     [Header("Movement")]
     [SerializeField] private Rigidbody2D rb;
@@ -40,18 +41,18 @@ public class Player : Singleton<Player>
 
     [Header("Aim Preview")]
     [SerializeField] private LineRenderer aimPreviewLine;
-    [SerializeField] private float previewLength = 10f;
     [SerializeField] private float dotSpacing = 0.35f;
     [SerializeField] private LayerMask bulletCollisionMask;
 
     private readonly List<Vector3> previewPoints = new();
-
+    
     private Vector3 currentTiltVelocity;
     private Quaternion baseRotation;
     private Camera mainCamera;
     private bool canShoot = true;
     private int totalBounces;
     private int ammoUsed;
+
     public int Ammo => ammo;
     public int AmmoUsed => ammoUsed;
     public int MaxBounces => maxBounces;
@@ -124,13 +125,12 @@ public class Player : Singleton<Player>
 
         UpdateAimPreview(firePoint.position, direction);
     }
-
     private void UpdateAimPreview(Vector2 origin, Vector2 direction)
     {
         if (aimPreviewLine == null)
             return;
 
-        aimPreviewLine.enabled = ammo > 0;
+        aimPreviewLine.enabled = ammo > 0 && PremiumUpgradeManager.Instance.HasUpgrade(PremiumUpgrade.UpgradeType.TrajectoryPreview);
 
         if (!aimPreviewLine.enabled)
             return;
@@ -139,9 +139,9 @@ public class Player : Singleton<Player>
         previewPoints.Add(origin);
 
         Vector2 currentPosition = origin;
-        Vector2 currentDirection = direction;
+        Vector2 currentDirection = direction.normalized;
 
-        float remainingDistance = previewLength;
+        float remainingDistance = bulletPrefab.MaxTravelDistance;
         int bounceCount = 0;
 
         while (remainingDistance > 0f)
@@ -156,7 +156,8 @@ public class Player : Singleton<Player>
             if (hit.collider == null)
             {
                 previewPoints.Add(
-                    currentPosition + currentDirection * remainingDistance
+                    currentPosition +
+                    currentDirection * remainingDistance
                 );
 
                 break;
@@ -168,15 +169,16 @@ public class Player : Singleton<Player>
             if (!hit.collider.CompareTag(Constants.TAG_WALL))
             {
                 currentPosition =
-                    hit.point + currentDirection * 0.02f;
+                    hit.point +
+                    currentDirection * 0.02f;
 
                 continue;
             }
 
-            bounceCount++;
-
-            if (bounceCount > maxBounces)
+            if (bounceCount >= maxBounces)
                 break;
+
+            bounceCount++;
 
             currentDirection =
                 Vector2.Reflect(
@@ -185,7 +187,8 @@ public class Player : Singleton<Player>
                 ).normalized;
 
             currentPosition =
-                hit.point + currentDirection * 0.02f;
+                hit.point +
+                currentDirection * 0.02f;
         }
 
         aimPreviewLine.positionCount = previewPoints.Count;
@@ -193,7 +196,6 @@ public class Player : Singleton<Player>
 
         UpdatePreviewTiling();
     }
-
     private void UpdatePreviewTiling()
     {
         if (aimPreviewLine.material == null || dotSpacing <= 0f)
@@ -289,6 +291,7 @@ public class Player : Singleton<Player>
         bullet.Initialize(
             direction,
             maxBounces,
+            PremiumUpgradeManager.Instance.HasUpgrade(PremiumUpgrade.UpgradeType.BiggerBullet) ? biggerBulletScale : 1f,
             () =>
                 {
                     canShoot = true;
@@ -391,6 +394,7 @@ public class Player : Singleton<Player>
     public void ResetPlayer()
     {
         totalBounces = 0;
+        maxBounces = 0;
         ammoUsed = 0;
         canShoot = true;
 

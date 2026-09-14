@@ -41,6 +41,7 @@ public class Bullet : MonoBehaviour
     public void Initialize(
         Vector2 shootDirection,
         int bounceLimit,
+        float scale,
         Action finishedCallback,
         Action bouncedCallback,
         Action hitCallback)
@@ -56,6 +57,8 @@ public class Bullet : MonoBehaviour
         bounceCount = 0;
         remainingLifetime = lifetime;
         active = true;
+
+        transform.localScale = Vector3.one * scale;
 
         ActiveCount++;
 

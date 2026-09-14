@@ -17,22 +17,26 @@ public class CanvasShop : UICanvas
     [SerializeField] private TextMeshProUGUI txtAmmoPrice;
 
     [Header("Bounce")]
-    [SerializeField] private int bouncePrice = 1;
+    [SerializeField] private int baseBouncePrice = 1;
     [SerializeField] private int bouncePriceIncrease = 2;
-
     [Header("Ammo")]
-    [SerializeField] private int ammoPrice = 3;
+    [SerializeField] private int baseAmmoPrice = 3;
     [SerializeField] private int ammoPriceIncrease = 3;
 
     [Header("Animation")]
     [SerializeField] private float slideDistance = 600f;
     [SerializeField] private float slideDuration = 0.3f;
 
+    private int bouncePrice;
+    private int ammoPrice;
     private Vector2 targetPosition;
     private Sequence sequence;
 
     private void Awake()
     {
+        bouncePrice = baseBouncePrice;
+        ammoPrice = baseAmmoPrice;
+
         targetPosition = panel.anchoredPosition;
 
         btnNextRound.onClick.AddListener(OnNextRound);
@@ -139,5 +143,13 @@ public class CanvasShop : UICanvas
             gameObject.SetActive(false);
             RoundManager.Instance.StartNextRound();
         });
+    }
+    public void ResetPrice()
+    {
+        bouncePrice = baseBouncePrice;
+        ammoPrice = baseAmmoPrice;
+
+        txtBouncePrice.text = $"${bouncePrice}";
+        txtAmmoPrice.text = $"${ammoPrice}";
     }
 }

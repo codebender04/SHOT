@@ -9,6 +9,9 @@ public class CanvasPremiumShop : UICanvas
     [SerializeField] private RectTransform panel;
     [SerializeField] private Button btnStart;
 
+    [Header("Upgrade Items")]
+    [SerializeField] private PremiumUpgradeItem[] upgradeItems;
+
     [Header("Animation")]
     [SerializeField] private float backgroundFadeDuration = 0.4f;
     [SerializeField] private float slideDistance = 600f;
@@ -24,24 +27,57 @@ public class CanvasPremiumShop : UICanvas
         backgroundTargetColor = background.color;
 
         btnStart.onClick.AddListener(OnStart);
+
         CloseImmediate();
     }
 
     private void OnEnable()
     {
+        SetupUpgradeItems();
         PlayOpenAnimation();
     }
-
-    private void OnDisable()
+    private void SetupUpgradeItems()
     {
-        sequence?.Kill();
-    }
+        if (PremiumUpgradeManager.Instance == null)
+            return;
 
+        var upgrades = PremiumUpgradeManager.Instance.Upgrades;
+
+        int currentRound = RoundManager.Instance.CurrentRound;
+        int upcomingCount = 0;
+
+        for (int i = 0; i < upgradeItems.Length; i++)
+        {
+            PremiumUpgradeItem item = upgradeItems[i];
+
+            if (item == null)
+                continue;
+
+            if (i >= upgrades.Count)
+                continue;
+
+            PremiumUpgrade upgrade = upgrades[i];
+
+            bool unlocked = currentRound >= upgrade.unlockRound;
+            bool upcoming = false;
+
+            if (!unlocked && upcomingCount < 2)
+            {
+                upcoming = true;
+                upcomingCount++;
+            }
+
+            item.gameObject.SetActive(true);
+
+            item.Setup(upgrade, unlocked, upcoming);
+        }
+    }
     private void PlayOpenAnimation()
     {
         sequence?.Kill();
 
-        panel.anchoredPosition = targetPosition + Vector2.up * slideDistance;
+        panel.anchoredPosition =
+            targetPosition + Vector2.up * slideDistance;
 
         sequence = DOTween.Sequence();
 
@@ -82,5 +118,10 @@ public class CanvasPremiumShop : UICanvas
             CloseImmediate();
             RoundManager.Instance.StartRun();
         });
+    }
+
+    private void OnDisable()
+    {
+        sequence?.Kill();
     }
 }

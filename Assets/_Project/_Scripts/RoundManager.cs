@@ -112,6 +112,7 @@ public class RoundManager : Singleton<RoundManager>
         activeObstacles.Clear();
 
         Player.Instance.ResetPlayer();
+        UIManager.Instance.GetCanvas<CanvasShop>().ResetPrice();
 
         StartNextRound();
     }
