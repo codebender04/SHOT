@@ -13,8 +13,7 @@ public class PremiumUpgradeManager : Singleton<PremiumUpgradeManager>
     {
         foreach (PremiumUpgrade upgrade in upgrades)
         {
-            if (upgrade.type == type &&
-                purchasedUpgrades.Contains(upgrade))
+            if (upgrade.type == type && purchasedUpgrades.Contains(upgrade))
             {
                 return true;
             }

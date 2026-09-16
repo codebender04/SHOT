@@ -16,6 +16,8 @@ public class CanvasGameplay : UICanvas
     [SerializeField] private Image diamondIcon;
     [SerializeField] private RectTransform diamondTray;
     [SerializeField] private TextMeshProUGUI textDiamondCounter;
+    [SerializeField] private float insufficientDiamondFlashDuration = 0.15f;
+    [SerializeField] private Color insufficientDiamondColor = Color.red;
 
     [Header("Bullet Animation")]
     [SerializeField] private float bulletSpawnDelay = 0.06f;
@@ -25,20 +27,54 @@ public class CanvasGameplay : UICanvas
 
     private int money;
     private int displayedAmmo = -1;
+    private int pendingKillMoney;
+    private int currentKillChain;
 
     private void Start()
     {
         Player.Instance.OnAmmoChanged += Player_OnAmmoChanged;
-        Enemy.OnKilled += Enemy_OnKilled;
+        Bullet.OnEnemyKilled += Bullet_OnEnemyKilled;
+        Bullet.OnFinished += Bullet_OnFinished;
         RoundManager.Instance.OnRoundStart += RoundManager_OnRoundStart;
         DiamondManager.Instance.OnDiamondsChanged += Diamond_OnDiamondsChanged;
 
         Diamond_OnDiamondsChanged(DiamondManager.Instance.Diamonds);
         Player_OnAmmoChanged(Player.Instance.Ammo);
+
         txtRound.text = "ROUND 01";
+
         RefreshMoney();
     }
+    private void Bullet_OnEnemyKilled(Vector3 position, int chain)
+    {
+        currentKillChain = chain;
+        pendingKillMoney += chain;
 
+        string preview = $"${money}";
+
+        for (int i = 1; i <= currentKillChain; i++)
+            preview += $"\n<size=70%>+${i}</size>";
+
+        txtMoneyCounter.text = preview;
+    }
+    private void Bullet_OnFinished()
+    {
+        if (pendingKillMoney <= 0)
+            return;
+
+        int earnedMoney = pendingKillMoney;
+
+        DOVirtual.DelayedCall(0.25f, () =>
+        {
+            money += earnedMoney;
+
+            moneyStack.Change(earnedMoney);
+            txtMoneyCounter.text = $"${money}";
+
+            pendingKillMoney = 0;
+            currentKillChain = 0;
+        });
+    }
     private void RoundManager_OnRoundStart(int round)
     {
         txtRound.text = $"ROUND {round:D2}";
@@ -49,7 +85,8 @@ public class CanvasGameplay : UICanvas
         if (Player.Instance != null)
             Player.Instance.OnAmmoChanged -= Player_OnAmmoChanged;
 
-        Enemy.OnKilled -= Enemy_OnKilled;
+        Bullet.OnEnemyKilled -= Bullet_OnEnemyKilled;
+        Bullet.OnFinished -= Bullet_OnFinished;
 
         if (RoundManager.Instance != null)
             RoundManager.Instance.OnRoundStart -= RoundManager_OnRoundStart;
@@ -57,11 +94,11 @@ public class CanvasGameplay : UICanvas
         if (DiamondManager.Instance != null)
             DiamondManager.Instance.OnDiamondsChanged -= Diamond_OnDiamondsChanged;
     }
+
     private void Diamond_OnDiamondsChanged(int amount)
     {
         int currentDisplayed = diamondTray.childCount;
         int difference = amount - currentDisplayed;
-
         if (difference > 0)
         {
             for (int i = 0; i < difference; i++)
@@ -70,15 +107,14 @@ public class CanvasGameplay : UICanvas
         else if (difference < 0)
         {
             for (int i = 0; i < -difference; i++)
-                RemoveDiamond();
+            {
+                Transform diamond = diamondTray.GetChild(diamondTray.childCount - 1 - i);
+
+                Destroy(diamond.gameObject);
+            }
         }
+
         textDiamondCounter.text = $"{amount}<sprite=0>";
-    }
-    private void Enemy_OnKilled(Vector3 position)
-    {
-        money++;
-        txtMoneyCounter.text = $"${money}";
-        moneyStack.Change(1);
     }
 
     private void Player_OnAmmoChanged(int ammo)
@@ -179,6 +215,7 @@ public class CanvasGameplay : UICanvas
 
     public bool CanAfford(int cost)
     {
+        if (money < cost) moneyStack.FlashInsufficient();
         return money >= cost;
     }
 
@@ -213,6 +250,7 @@ public class CanvasGameplay : UICanvas
         for (int i = 0; i < amount; i++)
             CreateDiamond();
     }
+
     private void CreateDiamond()
     {
         if (diamondIcon == null || diamondTray == null)
@@ -225,7 +263,6 @@ public class CanvasGameplay : UICanvas
         Rect rect = diamondTray.rect;
 
         float halfWidth = diamondTransform.rect.width * 0.5f;
-
         float halfHeight = diamondTransform.rect.height * 0.5f;
 
         diamondTransform.anchoredPosition = new Vector2(
@@ -268,5 +305,28 @@ public class CanvasGameplay : UICanvas
 
         foreach (Transform child in diamondTray)
             Destroy(child.gameObject);
+    }
+    public void FlashInsufficientDiamonds()
+    {
+        foreach (Transform child in diamondTray)
+        {
+            Image image = child.GetComponent<Image>();
+
+            if (image == null)
+                continue;
+
+            Color originalColor = image.color;
+
+            image.DOKill();
+
+            image.color = originalColor;
+
+            image.DOColor(
+                insufficientDiamondColor,
+                insufficientDiamondFlashDuration
+            )
+            .SetLoops(2, LoopType.Yoyo)
+            .SetEase(Ease.OutQuad);
+        }
     }
 }

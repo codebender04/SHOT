@@ -409,10 +409,9 @@ public class RoundManager : Singleton<RoundManager>
             return;
 
         if (Player.Instance.Ammo > 0)
+        {
             return;
-
-        if (Bullet.ActiveCount > 0)
-            return;
+        }
 
         foreach (Enemy enemy in activeEnemies)
         {
@@ -425,10 +424,13 @@ public class RoundManager : Singleton<RoundManager>
     }
     private int GetDiamondReward(int round)
     {
-        return Mathf.Max(
-            1,
-            Mathf.RoundToInt(Mathf.Sqrt(round))
-        );
+        int completedRounds = Mathf.Max(0, round - 1);
+        int total = 0;
+
+        for (int i = 1; i <= completedRounds; i++)
+            total += Mathf.CeilToInt(i / 5f);
+
+        return total;
     }
     private void GameOver()
     {

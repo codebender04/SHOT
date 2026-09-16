@@ -37,16 +37,14 @@ public class PremiumTooltip : MonoBehaviour
 
         txtName.text = upgrade.upgradeName;
         txtDescription.text = upgrade.description;
-        txtCost.text = $"Cost: {upgrade.cost}<sprite=0>";
+        txtCost.text = PremiumUpgradeManager.Instance.HasUpgrade(upgrade.type) ? "OWNED" : $"Cost: {upgrade.cost}<sprite=0>";
         txtUnlockedAt.text = $"Unlocked At:\nRound {upgrade.unlockRound:D2}";
 
         gameObject.SetActive(true);
 
         panel.localScale = defaultScale * startScale;
 
-        panel.localRotation =
-            defaultRotation *
-            Quaternion.Euler(0f, 0f, startRotation);
+        panel.localRotation = defaultRotation * Quaternion.Euler(0f, 0f, startRotation);
 
         sequence = DOTween.Sequence();
 

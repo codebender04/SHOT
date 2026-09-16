@@ -1,3 +1,4 @@
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -5,7 +6,8 @@ public class UIStack : MonoBehaviour
 {
     [SerializeField] private Image itemPrefab;
     [SerializeField] private float offset = 3f;
-
+    [SerializeField] private float insufficientFlashDuration = 0.15f;
+    [SerializeField] private Color insufficientColor = Color.red;
     private void Start()
     {
         Clear();
@@ -56,5 +58,28 @@ public class UIStack : MonoBehaviour
     {
         for (int i = 0; i < transform.childCount; i++)
             Destroy(transform.GetChild(i).gameObject);
+    }
+    public void FlashInsufficient()
+    {
+        foreach (Transform child in transform)
+        {
+            Image image = child.GetComponent<Image>();
+
+            if (image == null)
+                continue;
+
+            Color originalColor = image.color;
+
+            image.DOKill();
+
+            image.color = originalColor;
+
+            image.DOColor(
+                insufficientColor,
+                insufficientFlashDuration
+            )
+            .SetLoops(2, LoopType.Yoyo)
+            .SetEase(Ease.OutQuad);
+        }
     }
 }

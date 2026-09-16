@@ -62,7 +62,7 @@ public class CanvasShop : UICanvas
 
     private void OnDisable()
     {
-        GameManager.Instance.SetState(GameState.Playing);
+        GameManager.Instance?.SetState(GameState.Playing);
         sequence?.Kill();
     }
 
@@ -95,8 +95,7 @@ public class CanvasShop : UICanvas
 
     private void Buy(int price, System.Action purchase, System.Action increasePrice)
     {
-        if (!UIManager.Instance.GetCanvas<CanvasGameplay>().CanAfford(price))
-            return;
+        if (!UIManager.Instance.GetCanvas<CanvasGameplay>().CanAfford(price)) return;
 
         UIManager.Instance.GetCanvas<CanvasGameplay>().ChangeMoney(-price);
 
