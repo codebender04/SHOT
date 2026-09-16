@@ -1,8 +1,9 @@
-using System;
-using System.Collections.Generic;
 using DG.Tweening;
 using MoreMountains.Feedbacks;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
+using static PremiumUpgrade;
 
 public class Player : Singleton<Player>
 {
@@ -291,12 +292,12 @@ public class Player : Singleton<Player>
         bullet.Initialize(
             direction,
             maxBounces,
-            PremiumUpgradeManager.Instance.HasUpgrade(PremiumUpgrade.UpgradeType.BiggerBullet) ? biggerBulletScale : 1f,
+            PremiumUpgradeManager.Instance.HasUpgrade(UpgradeType.BiggerBullet),
             () =>
-                {
-                    canShoot = true;
-                    RoundManager.Instance.CheckRunLost();
-                },
+            {
+                canShoot = true;
+                RoundManager.Instance.CheckRunLost();
+            },
             () =>
             {
                 totalBounces++;
@@ -304,14 +305,14 @@ public class Player : Singleton<Player>
             },
             () => hitFeedback?.PlayFeedbacks()
         );
-
         shootFeedback?.PlayFeedbacks();
     }
-
     public void ChangeAmmo(int value)
     {
         ammo = Mathf.Max(0, ammo + value);
         OnAmmoChanged?.Invoke(ammo);
+
+        RoundManager.Instance.CheckRunLost();
     }
     private void SetAmmo(int value)
     {

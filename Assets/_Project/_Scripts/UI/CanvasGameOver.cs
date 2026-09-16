@@ -12,6 +12,7 @@ public class CanvasGameOver : UICanvas
     [SerializeField] private TextMeshProUGUI txtMoney;
     [SerializeField] private TextMeshProUGUI txtHighestKillStreak;
     [SerializeField] private TextMeshProUGUI txtRound;
+    [SerializeField] private TextMeshProUGUI txtDiamond;
     [SerializeField] private Image background;
     [SerializeField] private RectTransform panel;
 
@@ -80,18 +81,19 @@ public class CanvasGameOver : UICanvas
         CloseImmediate();
         UIManager.Instance.Open<CanvasPremiumShop>();
     }
-
     public void SetStats(
         int ammoUsed,
         int noOfBounce,
         int money,
         int highestKillStreak,
-        int round)
+        int round,
+        int diamondReward)
     {
         txtAmmoUsed.text = ammoUsed.ToString();
         txtNoOfBounce.text = noOfBounce.ToString();
         txtMoney.text = $"${money}";
         txtHighestKillStreak.text = $"{highestKillStreak}";
         txtRound.text = $"{round:00}";
+        txtDiamond.text = $"+{diamondReward}<sprite=0>";
     }
 }

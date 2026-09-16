@@ -6,8 +6,8 @@ public class PremiumUpgradeManager : Singleton<PremiumUpgradeManager>
     [SerializeField] private List<PremiumUpgrade> upgrades = new();
 
     private readonly HashSet<PremiumUpgrade> purchasedUpgrades = new();
+
     public IReadOnlyList<PremiumUpgrade> Upgrades => upgrades;
-    public int Diamonds { get; private set; }
 
     public bool HasUpgrade(PremiumUpgrade.UpgradeType type)
     {
@@ -31,24 +31,17 @@ public class PremiumUpgradeManager : Singleton<PremiumUpgradeManager>
         if (purchasedUpgrades.Contains(upgrade))
             return false;
 
-        if (Diamonds < upgrade.cost)
+        if (!DiamondManager.Instance.SpendDiamonds(upgrade.cost))
             return false;
-
-        Diamonds -= upgrade.cost;
 
         purchasedUpgrades.Add(upgrade);
 
         return true;
     }
 
-    public void AddDiamonds(int amount)
-    {
-        Diamonds = Mathf.Max(0, Diamonds + amount);
-    }
-
     public bool CanAfford(int cost)
     {
-        return Diamonds >= cost;
+        return DiamondManager.Instance.Diamonds >= cost;
     }
 
     public List<PremiumUpgrade> GetAvailableUpgrades(int round)

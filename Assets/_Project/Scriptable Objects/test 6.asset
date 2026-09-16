@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d4be73f31bc404f4c8fd13e76cd44f73, type: 3}
-  m_Name: test 1
+  m_Name: test 6
   m_EditorClassIdentifier: Assembly-CSharp::PremiumUpgrade
   type: 0
-  upgradeName: test 1
-  description: test desc 1
-  cost: 5
-  unlockRound: 5
+  upgradeName: test
+  description: test
+  cost: 1
+  unlockRound: 10

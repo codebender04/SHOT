@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 51bdd98ab8187a34aa269dfb683c0781
+guid: 6f966ac456e4e444baa4d3619c7cb6cf
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -127,9 +127,9 @@ ScriptedImporter:
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
   animatedSpriteImportData:
-  - name: previewicon
+  - name: emergencybullet
     originalName: 
-    pivot: {x: 0.4615385, y: -0.071428575}
+    pivot: {x: 0.5, y: -0.8333334}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -137,9 +137,9 @@ ScriptedImporter:
       serializedVersion: 2
       x: 4
       y: 4
-      width: 13
-      height: 14
-    spriteID: 1b1c54524ab18944eaa32660a690b007
+      width: 12
+      height: 6
+    spriteID: 6d54374d11e6f1149b037a7f6ff8058a
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -153,25 +153,25 @@ ScriptedImporter:
   asepriteLayers:
   - layerIndex: 0
     uuid:
-      value0: 134600877
+      value0: 2807853931
       value1: 0
       value2: 0
       value3: 0
     guid: 0
-    name: previewicon
+    name: emergencybullet
     layerFlags: 0
     layerType: 0
     blendMode: 0
     cells:
-    - name: previewicon
+    - name: emergencybullet
       frameIndex: 0
       additiveSortOrder: 0
       cellRect:
         x: 2
-        y: 1
-        width: 13
-        height: 14
-      spriteId: 1b1c54524ab18944eaa32660a690b007
+        y: 5
+        width: 12
+        height: 6
+      spriteId: 6d54374d11e6f1149b037a7f6ff8058a
     linkedCells: []
     tileCells: []
     tileSetIndex: 0
@@ -182,4 +182,4 @@ ScriptedImporter:
   secondarySpriteTextures: []
   spritePackingTag: 
   canvasSize: {x: 16, y: 16}
-  previousTextureSize: {x: 32, y: 32}
+  previousTextureSize: {x: 32, y: 16}

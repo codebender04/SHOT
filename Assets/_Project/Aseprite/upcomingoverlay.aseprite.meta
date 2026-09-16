@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 51bdd98ab8187a34aa269dfb683c0781
+guid: 94ca51c3348372f4e8acda7ad5060fad
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -127,9 +127,9 @@ ScriptedImporter:
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
   animatedSpriteImportData:
-  - name: previewicon
+  - name: upcomingoverlay
     originalName: 
-    pivot: {x: 0.4615385, y: -0.071428575}
+    pivot: {x: 0.5, y: 0}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -137,9 +137,9 @@ ScriptedImporter:
       serializedVersion: 2
       x: 4
       y: 4
-      width: 13
-      height: 14
-    spriteID: 1b1c54524ab18944eaa32660a690b007
+      width: 15
+      height: 15
+    spriteID: 3558ed49e74fcc542941a708f28c44e8
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -153,25 +153,25 @@ ScriptedImporter:
   asepriteLayers:
   - layerIndex: 0
     uuid:
-      value0: 134600877
+      value0: 2406220772
       value1: 0
       value2: 0
       value3: 0
     guid: 0
-    name: previewicon
+    name: upcomingoverlay
     layerFlags: 0
     layerType: 0
     blendMode: 0
     cells:
-    - name: previewicon
+    - name: upcomingoverlay
       frameIndex: 0
       additiveSortOrder: 0
       cellRect:
-        x: 2
-        y: 1
-        width: 13
-        height: 14
-      spriteId: 1b1c54524ab18944eaa32660a690b007
+        x: 0
+        y: 0
+        width: 15
+        height: 15
+      spriteId: 3558ed49e74fcc542941a708f28c44e8
     linkedCells: []
     tileCells: []
     tileSetIndex: 0
@@ -181,5 +181,5 @@ ScriptedImporter:
   generatePhysicsShape: 0
   secondarySpriteTextures: []
   spritePackingTag: 
-  canvasSize: {x: 16, y: 16}
+  canvasSize: {x: 15, y: 15}
   previousTextureSize: {x: 32, y: 32}

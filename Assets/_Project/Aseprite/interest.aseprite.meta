@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 51bdd98ab8187a34aa269dfb683c0781
+guid: 6b646bbf5a5e21f44aa0070313eb3c8b
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -127,9 +127,9 @@ ScriptedImporter:
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
   animatedSpriteImportData:
-  - name: previewicon
+  - name: interest
     originalName: 
-    pivot: {x: 0.4615385, y: -0.071428575}
+    pivot: {x: 0.5, y: -0.071428575}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -137,9 +137,9 @@ ScriptedImporter:
       serializedVersion: 2
       x: 4
       y: 4
-      width: 13
+      width: 14
       height: 14
-    spriteID: 1b1c54524ab18944eaa32660a690b007
+    spriteID: 0afb66f24f026ba459c827cdb3c1037e
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -153,25 +153,25 @@ ScriptedImporter:
   asepriteLayers:
   - layerIndex: 0
     uuid:
-      value0: 134600877
+      value0: 2037579348
       value1: 0
       value2: 0
       value3: 0
     guid: 0
-    name: previewicon
+    name: interest
     layerFlags: 0
     layerType: 0
     blendMode: 0
     cells:
-    - name: previewicon
+    - name: interest
       frameIndex: 0
       additiveSortOrder: 0
       cellRect:
-        x: 2
+        x: 1
         y: 1
-        width: 13
+        width: 14
         height: 14
-      spriteId: 1b1c54524ab18944eaa32660a690b007
+      spriteId: 0afb66f24f026ba459c827cdb3c1037e
     linkedCells: []
     tileCells: []
     tileSetIndex: 0

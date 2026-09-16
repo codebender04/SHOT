@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static PremiumUpgrade;
 
 public class RoundManager : Singleton<RoundManager>
 {
@@ -125,6 +126,17 @@ public class RoundManager : Singleton<RoundManager>
         {
             GameOver();
             return;
+        }
+
+        if (PremiumUpgradeManager.Instance.HasUpgrade(UpgradeType.Interest))
+        {
+            CanvasGameplay gameplay = UIManager.Instance.GetCanvas<CanvasGameplay>();
+            int interest = gameplay.GetMoney() / 5;
+            if (interest > 0) gameplay.ChangeMoney(interest);
+        }
+        if (PremiumUpgradeManager.Instance.HasUpgrade(UpgradeType.EmergencyAmmo) && Player.Instance.Ammo == 1)
+        {
+            Player.Instance.ChangeAmmo(1);
         }
 
         CurrentRound++;
@@ -391,10 +403,15 @@ public class RoundManager : Singleton<RoundManager>
 
         UIManager.Instance.Open<CanvasShop>();
     }
-
     public void CheckRunLost()
     {
+        if (!IsRoundActive)
+            return;
+
         if (Player.Instance.Ammo > 0)
+            return;
+
+        if (Bullet.ActiveCount > 0)
             return;
 
         foreach (Enemy enemy in activeEnemies)
@@ -406,20 +423,30 @@ public class RoundManager : Singleton<RoundManager>
             }
         }
     }
-
+    private int GetDiamondReward(int round)
+    {
+        return Mathf.Max(
+            1,
+            Mathf.RoundToInt(Mathf.Sqrt(round))
+        );
+    }
     private void GameOver()
     {
         IsRoundActive = false;
 
-        CanvasGameOver gameOver =
-            UIManager.Instance.Open<CanvasGameOver>();
+        int money = UIManager.Instance.GetCanvas<CanvasGameplay>().GetMoney();
 
-        gameOver.SetStats(
+        int diamondReward = GetDiamondReward(CurrentRound);
+
+        DiamondManager.Instance.AddDiamonds(diamondReward);
+
+        UIManager.Instance.Open<CanvasGameOver>().SetStats(
             Player.Instance.AmmoUsed,
             Player.Instance.TotalBounces,
-            UIManager.Instance.GetCanvas<CanvasGameplay>().GetMoney(),
+            money,
             HighestKillStreak,
-            CurrentRound
+            CurrentRound,
+            diamondReward
         );
     }
 }

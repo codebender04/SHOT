@@ -12,6 +12,11 @@ public class CanvasGameplay : UICanvas
     [SerializeField] private UIStack moneyStack;
     [SerializeField] private TextMeshProUGUI txtMoneyCounter;
 
+    [Header("Diamonds")]
+    [SerializeField] private Image diamondIcon;
+    [SerializeField] private RectTransform diamondTray;
+    [SerializeField] private TextMeshProUGUI textDiamondCounter;
+
     [Header("Bullet Animation")]
     [SerializeField] private float bulletSpawnDelay = 0.06f;
     [SerializeField] private float bulletPopDuration = 0.2f;
@@ -26,7 +31,9 @@ public class CanvasGameplay : UICanvas
         Player.Instance.OnAmmoChanged += Player_OnAmmoChanged;
         Enemy.OnKilled += Enemy_OnKilled;
         RoundManager.Instance.OnRoundStart += RoundManager_OnRoundStart;
+        DiamondManager.Instance.OnDiamondsChanged += Diamond_OnDiamondsChanged;
 
+        Diamond_OnDiamondsChanged(DiamondManager.Instance.Diamonds);
         Player_OnAmmoChanged(Player.Instance.Ammo);
         txtRound.text = "ROUND 01";
         RefreshMoney();
@@ -46,8 +53,27 @@ public class CanvasGameplay : UICanvas
 
         if (RoundManager.Instance != null)
             RoundManager.Instance.OnRoundStart -= RoundManager_OnRoundStart;
-    }
 
+        if (DiamondManager.Instance != null)
+            DiamondManager.Instance.OnDiamondsChanged -= Diamond_OnDiamondsChanged;
+    }
+    private void Diamond_OnDiamondsChanged(int amount)
+    {
+        int currentDisplayed = diamondTray.childCount;
+        int difference = amount - currentDisplayed;
+
+        if (difference > 0)
+        {
+            for (int i = 0; i < difference; i++)
+                CreateDiamond();
+        }
+        else if (difference < 0)
+        {
+            for (int i = 0; i < -difference; i++)
+                RemoveDiamond();
+        }
+        textDiamondCounter.text = $"{amount}<sprite=0>";
+    }
     private void Enemy_OnKilled(Vector3 position)
     {
         money++;
@@ -178,5 +204,69 @@ public class CanvasGameplay : UICanvas
     private void RefreshMoney()
     {
         moneyStack.Refresh();
+    }
+
+    public void SetDiamonds(int amount)
+    {
+        ClearDiamonds();
+
+        for (int i = 0; i < amount; i++)
+            CreateDiamond();
+    }
+    private void CreateDiamond()
+    {
+        if (diamondIcon == null || diamondTray == null)
+            return;
+
+        Image diamond = Instantiate(diamondIcon, diamondTray);
+
+        RectTransform diamondTransform = diamond.rectTransform;
+
+        Rect rect = diamondTray.rect;
+
+        float halfWidth = diamondTransform.rect.width * 0.5f;
+
+        float halfHeight = diamondTransform.rect.height * 0.5f;
+
+        diamondTransform.anchoredPosition = new Vector2(
+            Random.Range(
+                rect.xMin + halfWidth,
+                rect.xMax - halfWidth
+            ),
+            Random.Range(
+                rect.yMin + halfHeight,
+                rect.yMax - halfHeight
+            )
+        );
+
+        diamondTransform.localRotation =
+            Quaternion.Euler(
+                0f,
+                0f,
+                Random.Range(0f, 360f)
+            );
+    }
+
+    private void RemoveDiamond()
+    {
+        if (diamondTray == null ||
+            diamondTray.childCount == 0)
+            return;
+
+        Transform diamond =
+            diamondTray.GetChild(
+                diamondTray.childCount - 1
+            );
+
+        Destroy(diamond.gameObject);
+    }
+
+    private void ClearDiamonds()
+    {
+        if (diamondTray == null)
+            return;
+
+        foreach (Transform child in diamondTray)
+            Destroy(child.gameObject);
     }
 }

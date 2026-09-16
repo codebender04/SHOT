@@ -18,6 +18,9 @@ public class Bullet : MonoBehaviour
 
     public float MaxTravelDistance => speed * lifetime;
 
+    [Header("Bullet Size")]
+    [SerializeField] private float bounceSizeIncrease = 0.15f;
+
     [Header("Effects")]
     [SerializeField] private ParticleSystem bounceEffect;
     [SerializeField] private TrailRenderer bulletTrail;
@@ -35,13 +38,14 @@ public class Bullet : MonoBehaviour
     private int killStreak;
     private float remainingLifetime;
     private bool active;
+    private bool biggerBullet;
 
     private readonly List<Enemy> killedEnemyList = new();
 
     public void Initialize(
         Vector2 shootDirection,
         int bounceLimit,
-        float scale,
+        bool hasBiggerBullet,
         Action finishedCallback,
         Action bouncedCallback,
         Action hitCallback)
@@ -56,9 +60,10 @@ public class Bullet : MonoBehaviour
         killStreak = 0;
         bounceCount = 0;
         remainingLifetime = lifetime;
+        biggerBullet = hasBiggerBullet;
         active = true;
 
-        transform.localScale = Vector3.one * scale;
+        transform.localScale = Vector3.one;
 
         ActiveCount++;
 
@@ -200,6 +205,9 @@ public class Bullet : MonoBehaviour
         }
 
         direction = Vector2.Reflect(direction, normal).normalized;
+
+        if (biggerBullet)
+            transform.localScale += Vector3.one * bounceSizeIncrease;
     }
 
     private void Finish()

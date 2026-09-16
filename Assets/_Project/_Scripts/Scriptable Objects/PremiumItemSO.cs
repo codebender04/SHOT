@@ -6,9 +6,10 @@ public class PremiumUpgrade : ScriptableObject
     public enum UpgradeType
     {
         TrajectoryPreview,
-        BiggerBullet
+        BiggerBullet,
+        Interest,
+        EmergencyAmmo
     }
-
     [Header("Upgrade")]
     public UpgradeType type;
     public string upgradeName;
