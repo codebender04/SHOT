@@ -29,7 +29,6 @@ public class RoundManager : Singleton<RoundManager>
 
     [Header("Enemies")]
     [SerializeField] private List<EnemyType> enemyTypes = new();
-    [SerializeField] private float enemySpawnPadding = 0.5f;
     [SerializeField] private int maxEnemiesPerRound = 20;
 
     [Header("Collectibles")]
@@ -65,7 +64,6 @@ public class RoundManager : Singleton<RoundManager>
     {
         Enemy.OnKilled += Enemy_OnKilled;
         Enemy.OnFinishedDeath += Enemy_OnFinishedDeath;
-        Bullet.OnEnemyKilled += Bullet_OnEnemyKilled;
 
         StartRun();
     }
@@ -74,12 +72,16 @@ public class RoundManager : Singleton<RoundManager>
     {
         Enemy.OnKilled -= Enemy_OnKilled;
         Enemy.OnFinishedDeath -= Enemy_OnFinishedDeath;
-        Bullet.OnEnemyKilled -= Bullet_OnEnemyKilled;
     }
-
-    private void Bullet_OnEnemyKilled(Vector3 position, int killStreak)
+    private void Enemy_OnKilled(Vector3 position, int killStreak)
     {
         highestKillStreak = Mathf.Max(highestKillStreak, killStreak);
+        CheckRoundComplete();
+    }
+    private void Enemy_OnFinishedDeath(Enemy enemy)
+    {
+        activeEnemies.Remove(enemy);
+        CheckRoundComplete();
     }
 
     public void StartRun()
@@ -140,7 +142,6 @@ public class RoundManager : Singleton<RoundManager>
         }
 
         CurrentRound++;
-
         ArenaManager.Instance.SetArenaSizeForRound(CurrentRound);
 
         IsRoundActive = true;
@@ -367,17 +368,6 @@ public class RoundManager : Singleton<RoundManager>
             return;
 
         activeEnemies.Add(enemy);
-    }
-
-    private void Enemy_OnKilled(Vector3 position)
-    {
-        CheckRoundComplete();
-    }
-
-    private void Enemy_OnFinishedDeath(Enemy enemy)
-    {
-        activeEnemies.Remove(enemy);
-        CheckRoundComplete();
     }
 
     public void CheckRoundComplete()

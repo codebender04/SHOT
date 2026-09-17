@@ -21,7 +21,6 @@ public class Player : Singleton<Player>
     [Header("Shooting")]
     [SerializeField] private int ammo = 5;
     [SerializeField] private int maxBounces = 0;
-    [SerializeField] private float biggerBulletScale = 2f;
 
     [Header("Movement")]
     [SerializeField] private Rigidbody2D rb;
@@ -45,8 +44,19 @@ public class Player : Singleton<Player>
     [SerializeField] private float dotSpacing = 0.35f;
     [SerializeField] private LayerMask bulletCollisionMask;
 
+    [Header("WASD Movement")]
+    [SerializeField] private float movementDistancePerRound = 3f;
+    [SerializeField] private float movementSpeed = 5f;
+    [SerializeField] private LayerMask movementCollisionMask;
+    public int Ammo => ammo;
+    public int AmmoUsed => ammoUsed;
+    public int MaxBounces => maxBounces;
+    public int TotalBounces => totalBounces;
+
     private readonly List<Vector3> previewPoints = new();
-    
+
+    private float remainingMovementDistance;
+    private bool recoilActive;
     private Vector3 currentTiltVelocity;
     private Quaternion baseRotation;
     private Camera mainCamera;
@@ -54,18 +64,12 @@ public class Player : Singleton<Player>
     private int totalBounces;
     private int ammoUsed;
 
-    public int Ammo => ammo;
-    public int AmmoUsed => ammoUsed;
-    public int MaxBounces => maxBounces;
-    public int TotalBounces => totalBounces;
     private void Awake()
     {
         mainCamera = Camera.main;
         baseRotation = transform.localRotation;
 
         GameInput.Instance.ShootPressed += Shoot;
-
-        SetupAimPreviewLine();
 
         OnAmmoChanged?.Invoke(ammo);
         OnMaxBouncesChanged?.Invoke(maxBounces);
@@ -76,16 +80,89 @@ public class Player : Singleton<Player>
         if (GameInput.Instance != null)
             GameInput.Instance.ShootPressed -= Shoot;
     }
-
-    private void SetupAimPreviewLine()
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (aimPreviewLine == null)
+        if (!recoilActive)
             return;
 
-        aimPreviewLine.useWorldSpace = true;
-        aimPreviewLine.textureMode = LineTextureMode.Tile;
-    }
+        if (!PremiumUpgradeManager.Instance.HasUpgrade(
+            UpgradeType.RecoilDamage))
+            return;
 
+        if (collision.gameObject.layer != LayerMask.NameToLayer("Enemy"))
+            return;
+
+        if (!collision.collider.TryGetComponent(out Enemy enemy))
+            return;
+
+        enemy.TakeHit();
+        hitFeedback?.PlayFeedbacks();
+    }
+    private void FixedUpdate()
+    {
+        HandleWASDMovement();
+
+        Vector2 velocity = rb.linearVelocity;
+
+        velocity = Vector2.Lerp(velocity, Vector2.zero, movementDamping * Time.fixedDeltaTime);
+
+        if (velocity.sqrMagnitude <= 0.001f)
+        {
+            rb.linearVelocity = Vector2.zero;
+            return;
+        }
+
+        velocity = Vector2.ClampMagnitude(
+            velocity,
+            maxSpeed
+        );
+
+        float distance =
+            velocity.magnitude * Time.fixedDeltaTime;
+
+        Vector2 direction = velocity.normalized;
+
+        RaycastHit2D hit = Physics2D.Raycast(
+            rb.position,
+            direction,
+            distance + wallSkin,
+            bulletCollisionMask
+        );
+
+        if (hit.collider != null &&
+            hit.collider.CompareTag(Constants.TAG_WALL))
+        {
+            Vector2 reflectedDirection =
+                Vector2.Reflect(
+                    direction,
+                    hit.normal
+                ).normalized;
+
+            float bounceSpeed = Mathf.Max(
+                velocity.magnitude * wallBounceMultiplier,
+                minBounceSpeed
+            );
+
+            velocity = reflectedDirection * bounceSpeed;
+
+            rb.MovePosition(
+                hit.point + hit.normal * wallSkin
+            );
+
+            rb.linearVelocity = velocity;
+
+            bounceFeedback?.PlayFeedbacks();
+
+            return;
+        }
+
+        rb.MovePosition(
+            rb.position +
+            velocity * Time.fixedDeltaTime
+        );
+
+        rb.linearVelocity = velocity;
+    }
     private void Update()
     {
         UpdateAim(GameInput.Instance.AimScreenPosition);
@@ -282,6 +359,7 @@ public class Player : Singleton<Player>
         Vector2 direction = firePoint.right;
 
         rb.linearVelocity += -direction * recoilForce;
+        recoilActive = true;
 
         Bullet bullet = Instantiate(
             bulletPrefab,
@@ -324,73 +402,51 @@ public class Player : Singleton<Player>
         maxBounces += amount;
         OnMaxBouncesChanged?.Invoke(maxBounces);
     }
-
-    private void FixedUpdate()
+    private void HandleWASDMovement()
     {
-        Vector2 velocity = rb.linearVelocity;
-
-        velocity = Vector2.Lerp(
-            velocity,
-            Vector2.zero,
-            movementDamping * Time.fixedDeltaTime
-        );
-
-        if (velocity.sqrMagnitude <= 0.001f)
+        if (!PremiumUpgradeManager.Instance.HasUpgrade(UpgradeType.WASDMovement))
         {
-            rb.linearVelocity = Vector2.zero;
             return;
         }
 
-        velocity = Vector2.ClampMagnitude(
-            velocity,
-            maxSpeed
-        );
+        if (remainingMovementDistance <= 0f)
+            return;
 
-        float distance =
-            velocity.magnitude * Time.fixedDeltaTime;
+        Vector2 input = GameInput.Instance.MoveInput;
 
-        Vector2 direction = velocity.normalized;
+        if (input.sqrMagnitude <= 0.001f)
+            return;
 
-        RaycastHit2D hit = Physics2D.Raycast(
+        input = Vector2.ClampMagnitude(input, 1f);
+
+        float distance = movementSpeed * Time.fixedDeltaTime;
+        distance = Mathf.Min(distance, remainingMovementDistance);
+
+        Vector2 movement = input * distance;
+
+        RaycastHit2D hit = Physics2D.CircleCast(
             rb.position,
-            direction,
-            distance + wallSkin,
-            bulletCollisionMask
+            0.5f,
+            movement.normalized,
+            movement.magnitude,
+            movementCollisionMask
         );
 
-        if (hit.collider != null &&
-            hit.collider.CompareTag(Constants.TAG_WALL))
+        if (hit.collider != null)
         {
-            Vector2 reflectedDirection =
-                Vector2.Reflect(
-                    direction,
-                    hit.normal
-                ).normalized;
+            float allowedDistance = Mathf.Max(0f, hit.distance - wallSkin);
 
-            float bounceSpeed = Mathf.Max(
-                velocity.magnitude * wallBounceMultiplier,
-                minBounceSpeed
-            );
-
-            velocity = reflectedDirection * bounceSpeed;
-
-            rb.MovePosition(
-                hit.point + hit.normal * wallSkin
-            );
-
-            rb.linearVelocity = velocity;
-
-            bounceFeedback?.PlayFeedbacks();
-
-            return;
+            movement = movement.normalized * allowedDistance;
         }
 
-        rb.MovePosition(
-            rb.position +
-            velocity * Time.fixedDeltaTime
-        );
+        float movedDistance = movement.magnitude;
 
-        rb.linearVelocity = velocity;
+        if (movedDistance <= 0f)
+            return;
+
+        rb.MovePosition(rb.position + movement);
+
+        remainingMovementDistance -= movedDistance;
     }
     public void ResetPlayer()
     {
@@ -400,8 +456,10 @@ public class Player : Singleton<Player>
         canShoot = true;
 
         SetAmmo(5);
-
         UIManager.Instance.GetCanvas<CanvasGameplay>().SetMoney(0);
+
+        remainingMovementDistance = movementDistancePerRound;
+        recoilActive = false;
 
         rb.linearVelocity = Vector2.zero;
         rb.angularVelocity = 0f;

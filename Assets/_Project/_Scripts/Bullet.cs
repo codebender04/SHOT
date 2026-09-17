@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
-    public static event Action<Vector3, int> OnEnemyKilled;
     public static event Action OnFinished;
 
     public static int ActiveCount { get; private set; }
@@ -35,13 +34,9 @@ public class Bullet : MonoBehaviour
 
     private int maxBounces;
     private int bounceCount;
-    private int killStreak;
     private float remainingLifetime;
     private bool active;
     private bool biggerBullet;
-
-    private readonly List<Enemy> killedEnemyList = new();
-
     public void Initialize(
         Vector2 shootDirection,
         int bounceLimit,
@@ -57,7 +52,6 @@ public class Bullet : MonoBehaviour
         onBounced = bouncedCallback;
         onHit = hitCallback;
 
-        killStreak = 0;
         bounceCount = 0;
         remainingLifetime = lifetime;
         biggerBullet = hasBiggerBullet;
@@ -67,9 +61,10 @@ public class Bullet : MonoBehaviour
 
         ActiveCount++;
 
+        Enemy.StartShot();
+
         SetupTrail();
     }
-
     private void OnDestroy()
     {
         if (active)
@@ -140,14 +135,6 @@ public class Bullet : MonoBehaviour
             {
                 enemy.TakeHit();
                 onHit?.Invoke();
-
-                if (enemy.IsDead)
-                {
-                    killedEnemyList.Add(enemy);
-
-                    killStreak++;
-                    OnEnemyKilled?.Invoke(hit.point, killStreak);
-                }
             }
 
             float remainingDistance = distance - hit.distance;
@@ -209,7 +196,6 @@ public class Bullet : MonoBehaviour
         if (biggerBullet)
             transform.localScale += Vector3.one * bounceSizeIncrease;
     }
-
     private void Finish()
     {
         if (!active)
@@ -217,11 +203,7 @@ public class Bullet : MonoBehaviour
 
         active = false;
 
-        foreach (Enemy enemy in killedEnemyList)
-        {
-            if (enemy != null)
-                enemy.FinishDeath();
-        }
+        Enemy.FinishShot();
 
         onFinished?.Invoke();
         OnFinished?.Invoke();

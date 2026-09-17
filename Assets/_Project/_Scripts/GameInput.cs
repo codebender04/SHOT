@@ -7,9 +7,11 @@ public class GameInput : Singleton<GameInput>
     private InputSystem_Actions actions;
 
     public Vector2 AimScreenPosition => actions.Gameplay.Aim.ReadValue<Vector2>();
+    public Vector2 MoveInput => actions.Gameplay.Move.ReadValue<Vector2>();
 
     public event Action ShootPressed;
     public event Action PausePressed;
+
     private bool shootBlocked;
 
     private void Awake()
@@ -22,23 +24,28 @@ public class GameInput : Singleton<GameInput>
         actions.Enable();
 
         actions.Gameplay.Shoot.performed += OnShootPerformed;
+        //actions.Gameplay.Pause.performed += OnPausePerformed;
     }
 
     private void OnDisable()
     {
         actions.Gameplay.Shoot.performed -= OnShootPerformed;
+        //actions.Gameplay.Pause.performed -= OnPausePerformed;
 
         actions.Disable();
     }
+
     private void Update()
     {
         if (shootBlocked && !actions.Gameplay.Shoot.IsPressed())
             shootBlocked = false;
     }
+
     public void BlockShootUntilReleased()
     {
         shootBlocked = true;
     }
+
     private void OnShootPerformed(InputAction.CallbackContext context)
     {
         if (shootBlocked)

@@ -1,11 +1,15 @@
 using System;
+using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    public static event Action<Vector3> OnKilled;
+    public static event Action<Vector3, int> OnKilled;
     public static event Action<Enemy> OnFinishedDeath;
+
+    private static int killStreak;
+    private static readonly List<Enemy> pendingDeaths = new();
 
     [Header("References")]
     [SerializeField] private Animator animator;
@@ -44,7 +48,14 @@ public class Enemy : MonoBehaviour
         animator.SetTrigger(DieHash);
         DisableHitbox();
 
-        OnKilled?.Invoke(transform.position);
+        killStreak++;
+
+        pendingDeaths.Add(this);
+
+        OnKilled?.Invoke(
+            transform.position,
+            killStreak
+        );
 
         OnDeathStarted();
     }
@@ -59,12 +70,44 @@ public class Enemy : MonoBehaviour
             hitCollider.enabled = false;
     }
 
+    public static void StartShot()
+    {
+        killStreak = 0;
+        pendingDeaths.Clear();
+    }
+
+    public static void FinishShot()
+    {
+        for (int i = 0; i < pendingDeaths.Count; i++)
+        {
+            Enemy enemy = pendingDeaths[i];
+
+            if (enemy != null)
+                enemy.FinishDeath();
+        }
+
+        pendingDeaths.Clear();
+    }
+
     public virtual void FinishDeath()
     {
         Sequence sequence = DOTween.Sequence();
 
-        sequence.Join(visual.DOFade(0f, fadeDuration));
-        sequence.Join(transform.DOScale(deathScale, fadeDuration).SetEase(Ease.InQuad));
+        sequence.Join(
+            visual.DOFade(
+                0f,
+                fadeDuration
+            )
+        );
+
+        sequence.Join(
+            transform
+                .DOScale(
+                    deathScale,
+                    fadeDuration
+                )
+                .SetEase(Ease.InQuad)
+        );
 
         sequence.OnComplete(() =>
         {

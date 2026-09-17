@@ -17,7 +17,7 @@ public class KillStreakFX : MonoBehaviour
 
     private void Awake()
     {
-        Bullet.OnEnemyKilled += Bullet_OnEnemyKilled;
+        Enemy.OnKilled += Enemy_OnKilled;
         RoundManager.Instance.OnRoundStart += RoundManager_OnRoundStart;
 
         if (killStreakFXLeft != null)
@@ -29,20 +29,9 @@ public class KillStreakFX : MonoBehaviour
         ResetFX();
     }
 
-    private void OnDestroy()
+    private void Enemy_OnKilled(Vector3 position, int killStreak)
     {
-        Bullet.OnEnemyKilled -= Bullet_OnEnemyKilled;
 
-        if (RoundManager.Instance != null)
-            RoundManager.Instance.OnRoundStart -= RoundManager_OnRoundStart;
-    }
-
-    private void RoundManager_OnRoundStart(int round)
-    {
-        ResetFX();
-    }
-    private void Bullet_OnEnemyKilled(Vector3 position, int killStreak)
-    {
         if (killStreak < minStreak)
             return;
 
@@ -63,6 +52,19 @@ public class KillStreakFX : MonoBehaviour
 
         killStreakFXLeft?.Play();
         killStreakFXRight?.Play();
+    }
+
+    private void OnDestroy()
+    {
+        Enemy.OnKilled -= Enemy_OnKilled;
+
+        if (RoundManager.Instance != null)
+            RoundManager.Instance.OnRoundStart -= RoundManager_OnRoundStart;
+    }
+
+    private void RoundManager_OnRoundStart(int round)
+    {
+        ResetFX();
     }
     private void ResetFX()
     {

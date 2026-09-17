@@ -8,7 +8,9 @@ public class PremiumUpgrade : ScriptableObject
         TrajectoryPreview,
         BiggerBullet,
         Interest,
-        EmergencyAmmo
+        EmergencyAmmo,
+        WASDMovement,
+        RecoilDamage
     }
     [Header("Upgrade")]
     public UpgradeType type;

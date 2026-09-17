@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PremiumUpgrade
   type: 2
   upgradeName: Interest
-  description: Gains extra cash each round every 5 you have. No max cap.
+  description: Gains extra cash each round every 5 you have
   cost: 10
   unlockRound: 5

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class EnemyManager : Singleton<EnemyManager>
 {
@@ -6,15 +7,13 @@ public class EnemyManager : Singleton<EnemyManager>
 
     private void Start()
     {
-        Bullet.OnEnemyKilled += Bullet_OnEnemyKilled;
+        Enemy.OnKilled += Enemy_OnKilled;
     }
-
     private void OnDestroy()
     {
-        Bullet.OnEnemyKilled -= Bullet_OnEnemyKilled;
+        Enemy.OnKilled += Enemy_OnKilled;
     }
-
-    private void Bullet_OnEnemyKilled(Vector3 position, int killStreak)
+    private void Enemy_OnKilled(Vector3 position, int killStreak)
     {
         int reward = killStreak;
 
@@ -34,4 +33,5 @@ public class EnemyManager : Singleton<EnemyManager>
             killStreak
         );
     }
+
 }

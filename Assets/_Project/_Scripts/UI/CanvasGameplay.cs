@@ -33,7 +33,7 @@ public class CanvasGameplay : UICanvas
     private void Start()
     {
         Player.Instance.OnAmmoChanged += Player_OnAmmoChanged;
-        Bullet.OnEnemyKilled += Bullet_OnEnemyKilled;
+        Enemy.OnKilled += Enemy_OnKilled;
         Bullet.OnFinished += Bullet_OnFinished;
         RoundManager.Instance.OnRoundStart += RoundManager_OnRoundStart;
         DiamondManager.Instance.OnDiamondsChanged += Diamond_OnDiamondsChanged;
@@ -45,10 +45,11 @@ public class CanvasGameplay : UICanvas
 
         RefreshMoney();
     }
-    private void Bullet_OnEnemyKilled(Vector3 position, int chain)
+
+    private void Enemy_OnKilled(Vector3 position, int killStreak)
     {
-        currentKillChain = chain;
-        pendingKillMoney += chain;
+        currentKillChain = killStreak;
+        pendingKillMoney += killStreak;
 
         string preview = $"${money}";
 
@@ -85,7 +86,7 @@ public class CanvasGameplay : UICanvas
         if (Player.Instance != null)
             Player.Instance.OnAmmoChanged -= Player_OnAmmoChanged;
 
-        Bullet.OnEnemyKilled -= Bullet_OnEnemyKilled;
+        Enemy.OnKilled -= Enemy_OnKilled;
         Bullet.OnFinished -= Bullet_OnFinished;
 
         if (RoundManager.Instance != null)

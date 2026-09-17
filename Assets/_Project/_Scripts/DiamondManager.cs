@@ -26,7 +26,7 @@ public class DiamondManager : Singleton<DiamondManager>
 
     public bool SpendDiamonds(int amount)
     {
-        if (amount <= 0) return false;
+        if (amount < 0) return false;
         if (Diamonds < amount)
         {
             UIManager.Instance.GetCanvas<CanvasGameplay>().FlashInsufficientDiamonds();

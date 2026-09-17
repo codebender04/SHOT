@@ -919,6 +919,11 @@ MonoBehaviour:
   bulletCollisionMask:
     serializedVersion: 2
     m_Bits: 8
+  movementDistancePerRound: 2
+  movementSpeed: 2.5
+  movementCollisionMask:
+    serializedVersion: 2
+    m_Bits: 8
 --- !u!4 &222483837
 Transform:
   m_ObjectHideFlags: 0
