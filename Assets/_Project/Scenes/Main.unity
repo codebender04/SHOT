@@ -9016,6 +9016,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Premium Upgrade Item (4)
       objectReference: {fileID: 0}
+    - target: {fileID: 8980759668035245975, guid: e71d4394eab62964b965aaaa3aa1fdaf, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 6c1a5cbde57dff44ebb5d1baa87c9fa1, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10823,6 +10827,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Premium Upgrade Item (5)
       objectReference: {fileID: 0}
+    - target: {fileID: 8980759668035245975, guid: e71d4394eab62964b965aaaa3aa1fdaf, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 29f842af203a3bc4c8865c79425fca7f, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
