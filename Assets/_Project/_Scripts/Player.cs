@@ -15,6 +15,8 @@ public class Player : Singleton<Player>
     [SerializeField] private Bullet bulletPrefab;
     [SerializeField] private Transform firePoint;
     [SerializeField] private Transform gun;
+    [SerializeField] private Transform secondaryFirePoint;
+    [SerializeField] private Transform secondaryGun;
     [SerializeField] private MMFeedbacks shootFeedback;
     [SerializeField] private MMFeedbacks bounceFeedback;
     [SerializeField] private MMFeedbacks hitFeedback;
@@ -42,8 +44,12 @@ public class Player : Singleton<Player>
 
     [Header("Aim Preview")]
     [SerializeField] private LineRenderer aimPreviewLine;
+    [SerializeField] private LineRenderer secondaryAimPreviewLine;
     [SerializeField] private float dotSpacing = 0.35f;
     [SerializeField] private LayerMask bulletCollisionMask;
+    [Header("Bullet Spawn")]
+    [SerializeField] private LayerMask wallLayer;
+    [SerializeField] private float wallSpawnOffset = 0.02f;
 
     [Header("WASD Movement")]
     [SerializeField] private float movementDistancePerRound = 3f;
@@ -67,6 +73,8 @@ public class Player : Singleton<Player>
     private int totalBounces;
     private int ammoUsed;
 
+    private int bulletsRemainingThisShot;
+
     private void Awake()
     {
         mainCamera = Camera.main;
@@ -77,27 +85,38 @@ public class Player : Singleton<Player>
 
         movementSlider.gameObject.SetActive(false);
 
+        if (secondaryGun != null)
+            secondaryGun.gameObject.SetActive(false);
+
         OnAmmoChanged?.Invoke(ammo);
         OnMaxBouncesChanged?.Invoke(maxBounces);
     }
+
     private void RoundManager_OnRoundStart(int round)
     {
         remainingMovementDistance = movementDistancePerRound;
 
-        bool hasUpgrade = PremiumUpgradeManager.Instance.HasUpgrade(UpgradeType.WASDMovement);
+        bool hasUpgrade =
+            PremiumUpgradeManager.Instance.HasUpgrade(
+                UpgradeType.WASDMovement);
 
         movementSlider.gameObject.SetActive(hasUpgrade);
 
-        if (hasUpgrade) movementSlider.value = 1f;
+        if (hasUpgrade)
+            movementSlider.value = 1f;
+
+        UpdateSecondaryGunVisibility();
     }
 
     private void OnDestroy()
     {
         if (GameInput.Instance != null)
             GameInput.Instance.ShootPressed -= Shoot;
+
         if (RoundManager.Instance != null)
             RoundManager.Instance.OnRoundStart -= RoundManager_OnRoundStart;
     }
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (!recoilActive)
@@ -116,13 +135,18 @@ public class Player : Singleton<Player>
         enemy.TakeHit();
         hitFeedback?.PlayFeedbacks();
     }
+
     private void FixedUpdate()
     {
         HandleWASDMovement();
 
         Vector2 velocity = rb.linearVelocity;
 
-        velocity = Vector2.Lerp(velocity, Vector2.zero, movementDamping * Time.fixedDeltaTime);
+        velocity = Vector2.Lerp(
+            velocity,
+            Vector2.zero,
+            movementDamping * Time.fixedDeltaTime
+        );
 
         if (velocity.sqrMagnitude <= 0.001f)
         {
@@ -182,6 +206,7 @@ public class Player : Singleton<Player>
 
         rb.linearVelocity = velocity;
     }
+
     private void Update()
     {
         UpdateAim(GameInput.Instance.AimScreenPosition);
@@ -206,12 +231,19 @@ public class Player : Singleton<Player>
 
         UpdatePlayerTilt(mouseWorld);
 
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        float angle =
+            Mathf.Atan2(direction.y, direction.x) *
+            Mathf.Rad2Deg;
 
-        gun.rotation = Quaternion.Euler(0f, 0f, angle);
-        gun.position = transform.position + (Vector3)(direction * gunDistance);
+        gun.rotation =
+            Quaternion.Euler(0f, 0f, angle);
+
+        gun.position =
+            transform.position +
+            (Vector3)(direction * gunDistance);
 
         Vector3 gunScale = gun.localScale;
+
         gunScale.y = direction.x < 0f
             ? -Mathf.Abs(gunScale.y)
             : Mathf.Abs(gunScale.y);
@@ -220,16 +252,123 @@ public class Player : Singleton<Player>
 
         firePoint.right = direction;
 
-        UpdateAimPreview(firePoint.position, direction);
+        UpdateSecondaryGun(
+            direction,
+            angle
+        );
+
+        Vector2 primaryPreviewOrigin = GetSafeBulletSpawnPosition(firePoint.position, direction);
+
+        UpdateAimPreview(
+            primaryPreviewOrigin,
+            direction
+        );
+    }
+
+    private void UpdateSecondaryGun(
+        Vector2 primaryDirection,
+        float primaryAngle)
+    {
+        if (secondaryGun == null || secondaryFirePoint == null)
+            return;
+
+        bool hasDualGun =
+            PremiumUpgradeManager.Instance.HasUpgrade(
+                UpgradeType.DualGun);
+
+        secondaryGun.gameObject.SetActive(hasDualGun);
+
+        if (!hasDualGun)
+            return;
+
+        Vector2 oppositeDirection = -primaryDirection;
+
+        float oppositeAngle =
+            primaryAngle + 180f;
+
+        secondaryGun.rotation =
+            Quaternion.Euler(
+                0f,
+                0f,
+                oppositeAngle
+            );
+
+        secondaryGun.position =
+            transform.position +
+            (Vector3)(oppositeDirection * gunDistance);
+
+        Vector3 gunScale = secondaryGun.localScale;
+
+        gunScale.y = oppositeDirection.x < 0f
+            ? -Mathf.Abs(gunScale.y)
+            : Mathf.Abs(gunScale.y);
+
+        secondaryGun.localScale = gunScale;
+
+        secondaryFirePoint.right =
+            oppositeDirection;
+    }
+
+    private void UpdateSecondaryGunVisibility()
+    {
+        if (secondaryGun == null)
+            return;
+
+        bool hasDualGun =
+            PremiumUpgradeManager.Instance.HasUpgrade(
+                UpgradeType.DualGun);
+
+        secondaryGun.gameObject.SetActive(hasDualGun);
     }
     private void UpdateAimPreview(Vector2 origin, Vector2 direction)
     {
-        if (aimPreviewLine == null)
+        bool previewEnabled =
+            ammo > 0 &&
+            PremiumUpgradeManager.Instance.HasUpgrade(
+                PremiumUpgrade.UpgradeType.TrajectoryPreview);
+
+        if (aimPreviewLine != null)
+            aimPreviewLine.enabled = previewEnabled;
+
+        if (secondaryAimPreviewLine != null)
+            secondaryAimPreviewLine.enabled =
+                previewEnabled &&
+                PremiumUpgradeManager.Instance.HasUpgrade(
+                    PremiumUpgrade.UpgradeType.DualGun);
+
+        if (!previewEnabled)
             return;
 
-        aimPreviewLine.enabled = ammo > 0 && PremiumUpgradeManager.Instance.HasUpgrade(PremiumUpgrade.UpgradeType.TrajectoryPreview);
+        UpdateSingleAimPreview(
+            aimPreviewLine,
+            origin,
+            direction
+        );
 
-        if (!aimPreviewLine.enabled)
+        if (secondaryAimPreviewLine != null && PremiumUpgradeManager.Instance.HasUpgrade(PremiumUpgrade.UpgradeType.DualGun))
+        {
+            Vector2 secondaryDirection = -direction;
+
+            Vector2 secondaryPreviewOrigin =
+                GetSafeBulletSpawnPosition(
+                    secondaryFirePoint.position,
+                    secondaryDirection
+                );
+
+            UpdateSingleAimPreview(
+                secondaryAimPreviewLine,
+                secondaryPreviewOrigin,
+                secondaryDirection
+            );
+        }
+    }
+
+    private void UpdateSingleAimPreview(
+        LineRenderer line,
+        Vector2 origin,
+        Vector2 direction)
+    {
+        if (line == null)
             return;
 
         previewPoints.Clear();
@@ -238,7 +377,9 @@ public class Player : Singleton<Player>
         Vector2 currentPosition = origin;
         Vector2 currentDirection = direction.normalized;
 
-        float remainingDistance = bulletPrefab.MaxTravelDistance;
+        float remainingDistance =
+            bulletPrefab.MaxTravelDistance;
+
         int bounceCount = 0;
 
         while (remainingDistance > 0f)
@@ -261,6 +402,7 @@ public class Player : Singleton<Player>
             }
 
             previewPoints.Add(hit.point);
+
             remainingDistance -= hit.distance;
 
             if (!hit.collider.CompareTag(Constants.TAG_WALL))
@@ -288,14 +430,43 @@ public class Player : Singleton<Player>
                 currentDirection * 0.02f;
         }
 
-        aimPreviewLine.positionCount = previewPoints.Count;
-        aimPreviewLine.SetPositions(previewPoints.ToArray());
+        line.positionCount =
+            previewPoints.Count;
 
-        UpdatePreviewTiling();
+        line.SetPositions(
+            previewPoints.ToArray()
+        );
+
+        UpdatePreviewTiling(line);
+    }
+
+    private void UpdatePreviewTiling(LineRenderer line)
+    {
+        if (line == null ||
+            line.material == null ||
+            dotSpacing <= 0f)
+            return;
+
+        float totalLength = 0f;
+
+        for (int i = 1; i < previewPoints.Count; i++)
+        {
+            totalLength += Vector3.Distance(
+                previewPoints[i - 1],
+                previewPoints[i]
+            );
+        }
+
+        line.material.mainTextureScale =
+            new Vector2(
+                totalLength / dotSpacing,
+                1f
+            );
     }
     private void UpdatePreviewTiling()
     {
-        if (aimPreviewLine.material == null || dotSpacing <= 0f)
+        if (aimPreviewLine.material == null ||
+            dotSpacing <= 0f)
             return;
 
         float totalLength = 0f;
@@ -309,12 +480,16 @@ public class Player : Singleton<Player>
         }
 
         aimPreviewLine.material.mainTextureScale =
-            new Vector2(totalLength / dotSpacing, 1f);
+            new Vector2(
+                totalLength / dotSpacing,
+                1f
+            );
     }
 
     private void UpdatePlayerTilt(Vector3 mouseWorld)
     {
-        Vector3 offset = mouseWorld - transform.position;
+        Vector3 offset =
+            mouseWorld - transform.position;
 
         float normalizedX = Mathf.Clamp(
             offset.x / tiltDistance,
@@ -328,8 +503,11 @@ public class Player : Singleton<Player>
             1f
         );
 
-        float targetTiltX = -normalizedY * maxTilt;
-        float targetTiltY = normalizedX * maxTilt;
+        float targetTiltX =
+            -normalizedY * maxTilt;
+
+        float targetTiltY =
+            normalizedX * maxTilt;
 
         Vector3 targetEuler = new(
             targetTiltX,
@@ -337,10 +515,14 @@ public class Player : Singleton<Player>
             0f
         );
 
-        Vector3 currentEuler = transform.localEulerAngles;
+        Vector3 currentEuler =
+            transform.localEulerAngles;
 
-        currentEuler.x = NormalizeAngle(currentEuler.x);
-        currentEuler.y = NormalizeAngle(currentEuler.y);
+        currentEuler.x =
+            NormalizeAngle(currentEuler.x);
+
+        currentEuler.y =
+            NormalizeAngle(currentEuler.y);
 
         Vector3 newEuler = Vector3.SmoothDamp(
             currentEuler,
@@ -371,75 +553,150 @@ public class Player : Singleton<Player>
             return;
 
         canShoot = false;
+
         ammo--;
         ammoUsed++;
+
         OnAmmoChanged?.Invoke(ammo);
 
-        Vector2 direction = firePoint.right;
+        Vector2 primaryDirection =
+            firePoint.right;
 
-        rb.linearVelocity += -direction * recoilForce;
+        bool hasDualGun =
+            PremiumUpgradeManager.Instance.HasUpgrade(
+                UpgradeType.DualGun);
+
+        int bulletCount =
+            hasDualGun ? 2 : 1;
+
+        bulletsRemainingThisShot =
+            bulletCount;
+
+        Enemy.StartShot();
+
+        rb.linearVelocity +=
+            -primaryDirection * recoilForce;
+
         recoilActive = true;
 
+        Vector2 primarySpawnPosition = GetSafeBulletSpawnPosition(firePoint.position, primaryDirection);
+
+        SpawnBullet(primarySpawnPosition, primaryDirection);
+
+        if (hasDualGun)
+        {
+            Vector2 secondaryDirection = -primaryDirection;
+
+            Vector2 secondarySpawnPosition = GetSafeBulletSpawnPosition(secondaryFirePoint.position, secondaryDirection);
+
+            SpawnBullet(secondarySpawnPosition, secondaryDirection);
+        }
+
+        shootFeedback?.PlayFeedbacks();
+    }
+
+    private void SpawnBullet(
+        Vector3 position,
+        Vector2 direction)
+    {
         Bullet bullet = Instantiate(
             bulletPrefab,
-            firePoint.position,
+            position,
             Quaternion.identity
         );
 
         bullet.Initialize(
             direction,
             maxBounces,
-            PremiumUpgradeManager.Instance.HasUpgrade(UpgradeType.BiggerBullet),
-            () =>
-            {
-                canShoot = true;
-                RoundManager.Instance.CheckRunLost();
-            },
+            PremiumUpgradeManager.Instance.HasUpgrade(
+                UpgradeType.BiggerBullet),
+            HandleBulletFinished,
             () =>
             {
                 totalBounces++;
                 bounceFeedback?.PlayFeedbacks();
             },
-            () => hitFeedback?.PlayFeedbacks()
+            () =>
+            {
+                hitFeedback?.PlayFeedbacks();
+            }
         );
-        shootFeedback?.PlayFeedbacks();
     }
+
+    private void HandleBulletFinished()
+    {
+        bulletsRemainingThisShot--;
+
+        if (bulletsRemainingThisShot > 0)
+            return;
+
+        canShoot = true;
+
+        RoundManager.Instance.CheckRunLost();
+    }
+
     public void ChangeAmmo(int value)
     {
-        ammo = Mathf.Max(0, ammo + value);
+        ammo = Mathf.Max(
+            0,
+            ammo + value
+        );
+
         OnAmmoChanged?.Invoke(ammo);
 
         RoundManager.Instance.CheckRunLost();
     }
+
     private void SetAmmo(int value)
     {
-        ammo = Mathf.Max(0, value);
+        ammo = Mathf.Max(
+            0,
+            value
+        );
+
         OnAmmoChanged?.Invoke(ammo);
     }
+
     public void IncreaseMaxBounces(int amount = 1)
     {
         maxBounces += amount;
-        OnMaxBouncesChanged?.Invoke(maxBounces);
+
+        OnMaxBouncesChanged?.Invoke(
+            maxBounces
+        );
     }
+
     private void HandleWASDMovement()
     {
-        if (!PremiumUpgradeManager.Instance.HasUpgrade(UpgradeType.WASDMovement))
+        if (!PremiumUpgradeManager.Instance.HasUpgrade(
+            UpgradeType.WASDMovement))
             return;
 
         if (remainingMovementDistance <= 0f)
             return;
 
-        Vector2 input = GameInput.Instance.MoveInput;
+        Vector2 input =
+            GameInput.Instance.MoveInput;
 
         if (input.sqrMagnitude <= 0.001f)
             return;
 
-        input = Vector2.ClampMagnitude(input, 1f);
+        input = Vector2.ClampMagnitude(
+            input,
+            1f
+        );
 
-        float distance = movementSpeed * Time.fixedDeltaTime;
-        distance = Mathf.Min(distance, remainingMovementDistance);
+        float distance =
+            movementSpeed *
+            Time.fixedDeltaTime;
 
-        Vector2 movement = input * distance;
+        distance = Mathf.Min(
+            distance,
+            remainingMovementDistance
+        );
+
+        Vector2 movement =
+            input * distance;
 
         RaycastHit2D hit = Physics2D.CircleCast(
             rb.position,
@@ -451,24 +708,60 @@ public class Player : Singleton<Player>
 
         if (hit.collider != null)
         {
-            float allowedDistance = Mathf.Max(0f, hit.distance - wallSkin);
-            movement = movement.normalized * allowedDistance;
+            float allowedDistance =
+                Mathf.Max(
+                    0f,
+                    hit.distance - wallSkin
+                );
+
+            movement =
+                movement.normalized *
+                allowedDistance;
         }
 
-        float movedDistance = movement.magnitude;
+        float movedDistance =
+            movement.magnitude;
 
         if (movedDistance <= 0f)
             return;
 
-        rb.MovePosition(rb.position + movement);
+        rb.MovePosition(
+            rb.position + movement
+        );
 
-        remainingMovementDistance -= movedDistance;
+        remainingMovementDistance -=
+            movedDistance;
 
         if (movementSlider != null)
         {
             movementSlider.value =
-                remainingMovementDistance / movementDistancePerRound;
+                remainingMovementDistance /
+                movementDistancePerRound;
         }
+    }
+    private Vector2 GetSafeBulletSpawnPosition(Vector2 firePosition, Vector2 direction)
+    {
+        direction.Normalize();
+
+        Collider2D firePointWall = Physics2D.OverlapPoint(
+            firePosition,
+            wallLayer
+        );
+
+        if (firePointWall == null)
+            return firePosition;
+
+        RaycastHit2D hit = Physics2D.Raycast(
+            transform.position,
+            direction,
+            Vector2.Distance(transform.position, firePosition) + 1f,
+            wallLayer
+        );
+
+        if (hit.collider == null)
+            return firePosition;
+
+        return hit.point - direction * wallSpawnOffset;
     }
     public void ResetPlayer()
     {
@@ -476,18 +769,33 @@ public class Player : Singleton<Player>
         maxBounces = 0;
         ammoUsed = 0;
         canShoot = true;
+        bulletsRemainingThisShot = 0;
 
         SetAmmo(5);
-        UIManager.Instance.GetCanvas<CanvasGameplay>().SetMoney(0);
 
-        remainingMovementDistance = movementDistancePerRound;
+        UIManager.Instance
+            .GetCanvas<CanvasGameplay>()
+            .SetMoney(0);
+
+        remainingMovementDistance =
+            movementDistancePerRound;
+
         recoilActive = false;
 
-        rb.linearVelocity = Vector2.zero;
-        rb.angularVelocity = 0f;
-        rb.position = Vector2.zero;
+        rb.linearVelocity =
+            Vector2.zero;
 
-        transform.position = Vector3.zero;
-        transform.localRotation = baseRotation;
+        rb.angularVelocity = 0f;
+
+        rb.position =
+            Vector2.zero;
+
+        transform.position =
+            Vector3.zero;
+
+        transform.localRotation =
+            baseRotation;
+
+        UpdateSecondaryGunVisibility();
     }
 }

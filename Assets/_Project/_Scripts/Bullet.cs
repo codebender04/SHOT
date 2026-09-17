@@ -61,8 +61,6 @@ public class Bullet : MonoBehaviour
 
         ActiveCount++;
 
-        Enemy.StartShot();
-
         SetupTrail();
     }
     private void OnDestroy()

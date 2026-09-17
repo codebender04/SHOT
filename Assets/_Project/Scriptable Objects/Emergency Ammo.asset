@@ -16,4 +16,4 @@ MonoBehaviour:
   upgradeName: Emergency Ammo
   description: If you start a round with exactly 1 ammo, gain 1 ammo
   cost: 10
-  unlockRound: 5
+  unlockRound: 0

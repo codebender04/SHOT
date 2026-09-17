@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d4be73f31bc404f4c8fd13e76cd44f73, type: 3}
-  m_Name: test 8
+  m_Name: Dual Wield
   m_EditorClassIdentifier: Assembly-CSharp::PremiumUpgrade
-  type: 0
-  upgradeName: test
-  description: Enables trajectory preview for better aiming
-  cost: 1
-  unlockRound: 15
+  type: 6
+  upgradeName: Dual Wield
+  description: Adds another gun
+  cost: 0
+  unlockRound: 0

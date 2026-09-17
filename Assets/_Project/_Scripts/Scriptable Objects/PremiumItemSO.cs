@@ -10,7 +10,8 @@ public class PremiumUpgrade : ScriptableObject
         Interest,
         EmergencyAmmo,
         WASDMovement,
-        RecoilDamage
+        RecoilDamage,
+        DualGun
     }
     [Header("Upgrade")]
     public UpgradeType type;
