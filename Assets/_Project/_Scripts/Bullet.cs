@@ -203,8 +203,6 @@ public class Bullet : MonoBehaviour
 
         active = false;
 
-        Enemy.FinishShot();
-
         onFinished?.Invoke();
         OnFinished?.Invoke();
 

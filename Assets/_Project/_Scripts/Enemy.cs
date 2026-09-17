@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 
@@ -9,7 +8,6 @@ public class Enemy : MonoBehaviour
     public static event Action<Enemy> OnFinishedDeath;
 
     private static int killStreak;
-    private static readonly List<Enemy> pendingDeaths = new();
 
     [Header("References")]
     [SerializeField] private Animator animator;
@@ -45,12 +43,9 @@ public class Enemy : MonoBehaviour
 
         isDead = true;
 
-        animator.SetTrigger(DieHash);
         DisableHitbox();
 
         killStreak++;
-
-        pendingDeaths.Add(this);
 
         OnKilled?.Invoke(
             transform.position,
@@ -58,6 +53,10 @@ public class Enemy : MonoBehaviour
         );
 
         OnDeathStarted();
+
+        animator.SetTrigger(DieHash);
+
+        FinishDeath();
     }
 
     protected virtual void OnDeathStarted()
@@ -73,20 +72,6 @@ public class Enemy : MonoBehaviour
     public static void StartShot()
     {
         killStreak = 0;
-        pendingDeaths.Clear();
-    }
-
-    public static void FinishShot()
-    {
-        for (int i = 0; i < pendingDeaths.Count; i++)
-        {
-            Enemy enemy = pendingDeaths[i];
-
-            if (enemy != null)
-                enemy.FinishDeath();
-        }
-
-        pendingDeaths.Clear();
     }
 
     public virtual void FinishDeath()

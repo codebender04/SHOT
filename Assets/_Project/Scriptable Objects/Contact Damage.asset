@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PremiumUpgrade
   type: 5
   upgradeName: Contact Damage
-  description: The player deals contact damage to enemy hit while in recoil.
+  description: The player deals contact damage to enemy hit while in recoil
   cost: 0
   unlockRound: 0

@@ -3,6 +3,7 @@ using MoreMountains.Feedbacks;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using static PremiumUpgrade;
 
 public class Player : Singleton<Player>
@@ -22,7 +23,7 @@ public class Player : Singleton<Player>
     [SerializeField] private int ammo = 5;
     [SerializeField] private int maxBounces = 0;
 
-    [Header("Movement")]
+    [Header("Recoil Movement")]
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private float recoilForce = 3f;
     [SerializeField] private float maxSpeed = 5f;
@@ -48,6 +49,8 @@ public class Player : Singleton<Player>
     [SerializeField] private float movementDistancePerRound = 3f;
     [SerializeField] private float movementSpeed = 5f;
     [SerializeField] private LayerMask movementCollisionMask;
+    [SerializeField] private Slider movementSlider;
+
     public int Ammo => ammo;
     public int AmmoUsed => ammoUsed;
     public int MaxBounces => maxBounces;
@@ -70,17 +73,32 @@ public class Player : Singleton<Player>
         baseRotation = transform.localRotation;
 
         GameInput.Instance.ShootPressed += Shoot;
+        RoundManager.Instance.OnRoundStart += RoundManager_OnRoundStart;
+
+        movementSlider.gameObject.SetActive(false);
 
         OnAmmoChanged?.Invoke(ammo);
         OnMaxBouncesChanged?.Invoke(maxBounces);
+    }
+    private void RoundManager_OnRoundStart(int round)
+    {
+        remainingMovementDistance = movementDistancePerRound;
+
+        bool hasUpgrade = PremiumUpgradeManager.Instance.HasUpgrade(UpgradeType.WASDMovement);
+
+        movementSlider.gameObject.SetActive(hasUpgrade);
+
+        if (hasUpgrade) movementSlider.value = 1f;
     }
 
     private void OnDestroy()
     {
         if (GameInput.Instance != null)
             GameInput.Instance.ShootPressed -= Shoot;
+        if (RoundManager.Instance != null)
+            RoundManager.Instance.OnRoundStart -= RoundManager_OnRoundStart;
     }
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnTriggerEnter2D(Collider2D collision)
     {
         if (!recoilActive)
             return;
@@ -92,7 +110,7 @@ public class Player : Singleton<Player>
         if (collision.gameObject.layer != LayerMask.NameToLayer("Enemy"))
             return;
 
-        if (!collision.collider.TryGetComponent(out Enemy enemy))
+        if (!collision.TryGetComponent(out Enemy enemy))
             return;
 
         enemy.TakeHit();
@@ -109,6 +127,7 @@ public class Player : Singleton<Player>
         if (velocity.sqrMagnitude <= 0.001f)
         {
             rb.linearVelocity = Vector2.zero;
+            recoilActive = false;
             return;
         }
 
@@ -405,9 +424,7 @@ public class Player : Singleton<Player>
     private void HandleWASDMovement()
     {
         if (!PremiumUpgradeManager.Instance.HasUpgrade(UpgradeType.WASDMovement))
-        {
             return;
-        }
 
         if (remainingMovementDistance <= 0f)
             return;
@@ -435,7 +452,6 @@ public class Player : Singleton<Player>
         if (hit.collider != null)
         {
             float allowedDistance = Mathf.Max(0f, hit.distance - wallSkin);
-
             movement = movement.normalized * allowedDistance;
         }
 
@@ -447,6 +463,12 @@ public class Player : Singleton<Player>
         rb.MovePosition(rb.position + movement);
 
         remainingMovementDistance -= movedDistance;
+
+        if (movementSlider != null)
+        {
+            movementSlider.value =
+                remainingMovementDistance / movementDistancePerRound;
+        }
     }
     public void ResetPlayer()
     {
