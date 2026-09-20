@@ -1,6 +1,7 @@
 using System;
 using DG.Tweening;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class Enemy : MonoBehaviour
 {
@@ -24,6 +25,37 @@ public class Enemy : MonoBehaviour
     private bool isDead;
 
     public bool IsDead => isDead;
+    private void Awake()
+    {
+        if (visual == null)
+            return;
+
+        visual.DOKill();
+
+        Vector3 targetPosition = visual.transform.localPosition;
+
+        visual.transform.localPosition = targetPosition + Vector3.up * 0.2f;
+
+        Color color = visual.color;
+        color.a = 0f;
+        visual.color = color;
+
+        float delay = Random.Range(0f, 0.5f);
+
+        Sequence sequence = DOTween.Sequence();
+
+        sequence.AppendInterval(delay);
+
+        sequence.Join(
+            visual.transform.DOLocalMove(targetPosition, 0.4f)
+                .SetEase(Ease.OutCubic)
+        );
+
+        sequence.Join(
+            visual.DOFade(1f, 0.4f)
+                .SetEase(Ease.OutCubic)
+        );
+    }
 
     public virtual void TakeHit()
     {

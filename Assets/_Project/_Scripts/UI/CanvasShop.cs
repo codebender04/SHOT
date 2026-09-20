@@ -56,6 +56,9 @@ public class CanvasShop : UICanvas
         bouncePrice = baseBouncePrice;
         ammoPrice = baseAmmoPrice;
 
+        normalBouncePrice = bouncePrice;
+        normalAmmoPrice = ammoPrice;
+
         targetPosition = panel.anchoredPosition;
 
         btnNextRound.onClick.AddListener(OnNextRound);
@@ -66,11 +69,11 @@ public class CanvasShop : UICanvas
         btnBuyAmmo.onClick.AddListener(BuyAmmo);
         btnBuyAmmo2.onClick.AddListener(BuyAmmo);
 
-        txtBouncePrice.text = $"${bouncePrice}";
-        txtAmmoPrice.text = $"${ammoPrice}";
+        RefreshPriceTexts();
 
         CloseImmediate();
     }
+
     private void OnEnable()
     {
         PlayOpenAnimation();
@@ -80,7 +83,7 @@ public class CanvasShop : UICanvas
         else
             ResetDeals();
 
-        GameManager.Instance.SetState(GameState.Shop);
+        GameManager.Instance.SetState(GameState.Pausing);
         GameInput.Instance.BlockShootUntilReleased();
     }
 
@@ -94,9 +97,9 @@ public class CanvasShop : UICanvas
 
         RefreshPriceTexts();
     }
+
     private void OnDisable()
     {
-        GameManager.Instance?.SetState(GameState.Playing);
         sequence?.Kill();
     }
 
@@ -190,6 +193,7 @@ public class CanvasShop : UICanvas
             () =>
             {
                 bouncePrice += bouncePriceIncrease;
+                normalBouncePrice = bouncePrice;
 
                 bounceDealType = DealType.None;
 
@@ -211,6 +215,7 @@ public class CanvasShop : UICanvas
             () =>
             {
                 ammoPrice += ammoPriceIncrease;
+                normalAmmoPrice = ammoPrice;
 
                 ammoDealType = DealType.None;
 
@@ -279,6 +284,7 @@ public class CanvasShop : UICanvas
         {
             gameObject.SetActive(false);
             RoundManager.Instance.StartNextRound();
+            GameManager.Instance.SetState(GameState.Playing);
         });
     }
 
@@ -287,10 +293,12 @@ public class CanvasShop : UICanvas
         bouncePrice = baseBouncePrice;
         ammoPrice = baseAmmoPrice;
 
+        normalBouncePrice = bouncePrice;
+        normalAmmoPrice = ammoPrice;
+
         ammoDealType = DealType.None;
         bounceDealType = DealType.None;
 
-        txtBouncePrice.text = $"${bouncePrice}";
-        txtAmmoPrice.text = $"${ammoPrice}";
+        RefreshPriceTexts();
     }
 }

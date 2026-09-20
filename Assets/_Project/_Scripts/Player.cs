@@ -12,6 +12,7 @@ public class Player : Singleton<Player>
     public event Action<int> OnMaxBouncesChanged;
 
     [Header("References")]
+    [SerializeField] private SpriteRenderer visual;
     [SerializeField] private Bullet bulletPrefab;
     [SerializeField] private Transform firePoint;
     [SerializeField] private Transform gun;
@@ -82,6 +83,7 @@ public class Player : Singleton<Player>
 
         GameInput.Instance.ShootPressed += Shoot;
         RoundManager.Instance.OnRoundStart += RoundManager_OnRoundStart;
+        RoundManager.Instance.OnRunStart += RoundManager_OnRunStart;
 
         movementSlider.gameObject.SetActive(false);
 
@@ -90,6 +92,35 @@ public class Player : Singleton<Player>
 
         OnAmmoChanged?.Invoke(ammo);
         OnMaxBouncesChanged?.Invoke(maxBounces);
+    }
+
+    private void RoundManager_OnRunStart(int round)
+    {
+        visual.DOKill();
+
+        Vector3 targetPosition = visual.transform.localPosition;
+
+        visual.transform.localPosition = targetPosition + Vector3.up * 0.2f;
+
+
+        if (visual != null)
+        {
+            Color color = visual.color;
+            color.a = 0f;
+            visual.color = color;
+
+            Sequence sequence = DOTween.Sequence();
+
+            sequence.Join(
+                visual.transform.DOLocalMove(targetPosition, 0.4f)
+                    .SetEase(Ease.OutCubic)
+            );
+
+            sequence.Join(
+                visual.DOFade(1f, 0.4f)
+                    .SetEase(Ease.OutCubic)
+            );
+        }
     }
 
     private void RoundManager_OnRoundStart(int round)

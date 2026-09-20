@@ -1,3 +1,5 @@
+using DG.Tweening;
+using System.Collections;
 using UnityEngine;
 
 public class ArenaManager : Singleton<ArenaManager>
@@ -22,7 +24,14 @@ public class ArenaManager : Singleton<ArenaManager>
     [Header("Camera")]
     [SerializeField] private float cameraPadding = 0.5f;
 
+    [Header("Run Start Animation")]
+    [SerializeField] private float popScale = 0.85f;
+    [SerializeField] private float popDuration = 0.35f;
+    [SerializeField] private Ease popEase = Ease.OutBack;
+
     public Vector2 Size { get; private set; }
+
+    private Tween arenaTween;
 
     private void Awake()
     {
@@ -30,41 +39,94 @@ public class ArenaManager : Singleton<ArenaManager>
             gameplayCamera = Camera.main;
 
         SetArenaSize(0);
+        RoundManager.Instance.OnRunStart += RoundManager_OnRunStart;
+        RoundManager.Instance.OnRoundStart += RoundManager_OnRoundStart;
     }
 
-    public void SetArenaSizeForRound(int round)
+    private void RoundManager_OnRoundStart(int round)
+    {
+        SetArenaSizeForRound(round);
+    }
+
+    private void OnDestroy()
+    {
+        arenaTween?.Kill();
+
+        if (RoundManager.Instance != null)
+        {
+            RoundManager.Instance.OnRunStart -= RoundManager_OnRunStart;
+            RoundManager.Instance.OnRoundStart -= RoundManager_OnRoundStart;
+        }
+    }
+    private void RoundManager_OnRunStart(int round)
+    {
+        SetArenaSizeForRound(round, true);
+        StartCoroutine(PlayRunStartAnimation());
+    }
+
+    private IEnumerator PlayRunStartAnimation()
+    {
+        yield return null;
+
+        if (arenaVisual == null)
+            yield break;
+
+        arenaVisual.DOKill();
+
+        Vector3 targetScale = new Vector3(
+            Size.x / baseSize.x,
+            Size.y / baseSize.y,
+            1f
+        );
+
+        arenaVisual.localScale = Vector3.one * 0.4f;
+
+        arenaVisual
+            .DOScale(targetScale, popDuration)
+            .SetEase(Ease.OutBack)
+            .SetUpdate(true);
+    }
+    public void SetArenaSizeForRound(int round, bool animate = false)
     {
         int tier = Mathf.Max(
             0,
             (round - 1) / roundsPerSizeIncrease
         );
 
-        SetArenaSize(tier);
+        SetArenaSize(tier, animate);
     }
 
-    public void SetArenaSize(int tier)
+    public void SetArenaSize(int tier, bool animate = false)
     {
         Size = baseSize + sizeIncrease * tier;
 
-        UpdateVisual();
         UpdateWalls();
         UpdateCamera();
-    }
 
-    private void UpdateVisual()
-    {
         if (arenaVisual == null)
             return;
 
-        Vector3 scale = new Vector3(
+        Vector3 targetScale = new Vector3(
             Size.x / baseSize.x,
             Size.y / baseSize.y,
             1f
         );
 
-        arenaVisual.localScale = scale;
-    }
+        arenaVisual.DOKill();
 
+        if (animate)
+        {
+            arenaVisual.localScale = Vector3.zero;
+
+            arenaVisual
+                .DOScale(targetScale, popDuration)
+                .SetEase(popEase);
+        }
+        else
+        {
+            arenaVisual.localScale = targetScale;
+        }
+    }
     private void UpdateWalls()
     {
         Vector2 center = transform.position;
@@ -99,7 +161,6 @@ public class ArenaManager : Singleton<ArenaManager>
             return;
 
         float halfThickness = wall.bounds.extents.y;
-
         float y = targetCenter.y;
 
         if (wall == topWall)
@@ -123,7 +184,6 @@ public class ArenaManager : Singleton<ArenaManager>
             return;
 
         float halfThickness = wall.bounds.extents.x;
-
         float x = targetCenter.x;
 
         if (wall == leftWall)

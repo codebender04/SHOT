@@ -49,6 +49,7 @@ public class RoundManager : Singleton<RoundManager>
     [SerializeField] private LayerMask obstacleBlockedLayers;
 
     public event Action<int> OnRoundStart;
+    public event Action<int> OnRunStart;
 
     private readonly HashSet<Enemy> activeEnemies = new();
     private readonly List<Collectible> activeCollectibles = new();
@@ -64,8 +65,6 @@ public class RoundManager : Singleton<RoundManager>
     {
         Enemy.OnKilled += Enemy_OnKilled;
         Enemy.OnFinishedDeath += Enemy_OnFinishedDeath;
-
-        StartRun();
     }
 
     private void OnDestroy()
@@ -116,6 +115,8 @@ public class RoundManager : Singleton<RoundManager>
 
         Player.Instance.ResetPlayer();
         UIManager.Instance.GetCanvas<CanvasShop>().ResetPrice();
+        GameManager.Instance.SetState(GameState.Playing);
+        OnRunStart?.Invoke(CurrentRound);
 
         StartNextRound();
     }
@@ -142,7 +143,6 @@ public class RoundManager : Singleton<RoundManager>
         }
 
         CurrentRound++;
-        ArenaManager.Instance.SetArenaSizeForRound(CurrentRound);
 
         IsRoundActive = true;
 

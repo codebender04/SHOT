@@ -14,6 +14,7 @@ public class MovingEnemy : Enemy
     [SerializeField] private float stepHeight = 0.08f;
     [SerializeField] private float stepRotation = 3f;
 
+    private Rigidbody2D rb;
     private Vector2[] waypoints;
     private int waypointIndex;
     private Vector3 visualBasePosition;
@@ -22,6 +23,11 @@ public class MovingEnemy : Enemy
     private bool stepFlip;
 
     private float MoveSpeed => stepDistance / stepDuration;
+
+    private void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+    }
 
     private void Start()
     {
@@ -54,13 +60,13 @@ public class MovingEnemy : Enemy
 
     private void StartNextLeg()
     {
-        if (IsDead || waypoints == null)
+        if (IsDead || waypoints == null || rb == null)
             return;
 
         Vector2 target = waypoints[waypointIndex];
         waypointIndex = (waypointIndex + 1) % waypoints.Length;
 
-        Vector2 currentPosition = transform.position;
+        Vector2 currentPosition = rb.position;
         float distance = Vector2.Distance(currentPosition, target);
 
         if (distance <= 0.01f)
@@ -78,7 +84,7 @@ public class MovingEnemy : Enemy
 
         stepSequence.Insert(
             0f,
-            transform.DOMove(target, legDuration)
+            rb.DOMove(target, legDuration)
                 .SetEase(Ease.Linear)
         );
 
