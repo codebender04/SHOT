@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PremiumUpgrade
   type: 7
   upgradeName: Lucky Shop
-  description: every shop has a moderate chance of offering freebies or discounts
-  cost: 0
-  unlockRound: 0
+  description: moderate chance of freebies or discounts in the shop
+  cost: 22
+  unlockRound: 12

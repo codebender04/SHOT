@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PremiumUpgrade
   type: 1
   upgradeName: Growing Bullet
-  description: Your bullets grow in size after each bounce
-  cost: 0
+  description: Bullets grow in size after each bounce
+  cost: 5
   unlockRound: 0

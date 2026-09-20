@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PremiumUpgrade
   type: 4
   upgradeName: Free Movement
-  description: Allows you to move a fixed distance per round
-  cost: 0
-  unlockRound: 0
+  description: Free movement for a fixed distance per round
+  cost: 12
+  unlockRound: 8
