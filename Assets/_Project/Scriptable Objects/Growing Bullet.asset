@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d4be73f31bc404f4c8fd13e76cd44f73, type: 3}
-  m_Name: Bigger Bullet
+  m_Name: Growing Bullet
   m_EditorClassIdentifier: Assembly-CSharp::PremiumUpgrade
   type: 1
   upgradeName: Growing Bullet
   description: Your bullets grow in size after each bounce
-  cost: 6
+  cost: 0
   unlockRound: 0

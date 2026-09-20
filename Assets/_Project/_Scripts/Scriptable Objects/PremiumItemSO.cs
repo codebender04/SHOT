@@ -11,7 +11,8 @@ public class PremiumUpgrade : ScriptableObject
         EmergencyAmmo,
         WASDMovement,
         RecoilDamage,
-        DualGun
+        DualGun,
+        LuckyShop,
     }
     [Header("Upgrade")]
     public UpgradeType type;
