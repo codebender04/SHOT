@@ -1625,6 +1625,7 @@ GameObject:
   - component: {fileID: 280231796}
   - component: {fileID: 280231795}
   - component: {fileID: 280231794}
+  - component: {fileID: 280231797}
   m_Layer: 5
   m_Name: Button - To Premium Shop
   m_TagString: Untagged
@@ -1734,6 +1735,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 280231792}
   m_CullTransparentMesh: 1
+--- !u!114 &280231797
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 280231792}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ffdac0d9aef28846b4f92d28489f691, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIHoverScale
+  hoverScale: 1.2
+  duration: 0.25
 --- !u!1 &292324965
 GameObject:
   m_ObjectHideFlags: 0
@@ -10729,6 +10744,7 @@ GameObject:
   - component: {fileID: 890183733}
   - component: {fileID: 890183732}
   - component: {fileID: 890183731}
+  - component: {fileID: 890183734}
   m_Layer: 5
   m_Name: Button - Next Round
   m_TagString: Untagged
@@ -10838,6 +10854,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 890183729}
   m_CullTransparentMesh: 1
+--- !u!114 &890183734
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 890183729}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ffdac0d9aef28846b4f92d28489f691, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIHoverScale
+  hoverScale: 1.2
+  duration: 0.25
 --- !u!1 &900132721
 GameObject:
   m_ObjectHideFlags: 0
@@ -11915,6 +11945,7 @@ GameObject:
   - component: {fileID: 1081073892}
   - component: {fileID: 1081073891}
   - component: {fileID: 1081073890}
+  - component: {fileID: 1081073893}
   m_Layer: 5
   m_Name: Button - Buy Bullet
   m_TagString: Untagged
@@ -12024,6 +12055,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1081073888}
   m_CullTransparentMesh: 1
+--- !u!114 &1081073893
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1081073888}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ffdac0d9aef28846b4f92d28489f691, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIHoverScale
+  hoverScale: 1.2
+  duration: 0.25
 --- !u!1001 &1093749038
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18167,7 +18212,6 @@ Transform:
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 292324966}
-  - {fileID: 1425461292}
   - {fileID: 796461293}
   - {fileID: 810470204}
   - {fileID: 881588598}
@@ -18186,13 +18230,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d4991cad35a98e419cf01c85fa0bcce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ArenaManager
-  arenaVisual: {fileID: 292324966}
+  arenaVisual: {fileID: 292324967}
   gameplayCamera: {fileID: 519420031}
   topWall: {fileID: 796461294}
   bottomWall: {fileID: 810470205}
   leftWall: {fileID: 881588599}
   rightWall: {fileID: 1563524237}
-  wallInset: 0.25
   baseSize: {x: 3, y: 3}
   sizeIncrease: {x: 1, y: 1}
   spawnPadding: 0.5
@@ -19696,6 +19739,7 @@ GameObject:
   - component: {fileID: 1425017005}
   - component: {fileID: 1425017004}
   - component: {fileID: 1425017003}
+  - component: {fileID: 1425017006}
   m_Layer: 5
   m_Name: Button - Buy Bullet
   m_TagString: Untagged
@@ -19805,84 +19849,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1425017001}
   m_CullTransparentMesh: 1
---- !u!1 &1425461291
-GameObject:
+--- !u!114 &1425017006
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1425461292}
-  - component: {fileID: 1425461293}
-  m_Layer: 0
-  m_Name: Bounds
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1425461292
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1425461291}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1192092090}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!61 &1425461293
-BoxCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1425461291}
+  m_GameObject: {fileID: 1425017001}
   m_Enabled: 1
-  serializedVersion: 3
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_CompositeOperation: 0
-  m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0, y: 0}
-    oldSize: {x: 0, y: 0}
-    newSize: {x: 0, y: 0}
-    adaptiveTilingThreshold: 0
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Size: {x: 2, y: 2}
-  m_EdgeRadius: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ffdac0d9aef28846b4f92d28489f691, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIHoverScale
+  hoverScale: 1.2
+  duration: 0.25
 --- !u!1 &1432679463
 GameObject:
   m_ObjectHideFlags: 0
@@ -20169,6 +20149,7 @@ GameObject:
   - component: {fileID: 1475603487}
   - component: {fileID: 1475603486}
   - component: {fileID: 1475603485}
+  - component: {fileID: 1475603488}
   m_Layer: 5
   m_Name: Button - Buy Max Bounce
   m_TagString: Untagged
@@ -20278,6 +20259,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1475603483}
   m_CullTransparentMesh: 1
+--- !u!114 &1475603488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1475603483}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ffdac0d9aef28846b4f92d28489f691, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIHoverScale
+  hoverScale: 1.2
+  duration: 0.25
 --- !u!1 &1478993743
 GameObject:
   m_ObjectHideFlags: 0
@@ -20290,6 +20285,7 @@ GameObject:
   - component: {fileID: 1478993747}
   - component: {fileID: 1478993746}
   - component: {fileID: 1478993745}
+  - component: {fileID: 1478993748}
   m_Layer: 5
   m_Name: Button - Enter
   m_TagString: Untagged
@@ -20399,6 +20395,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1478993743}
   m_CullTransparentMesh: 1
+--- !u!114 &1478993748
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1478993743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ffdac0d9aef28846b4f92d28489f691, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIHoverScale
+  hoverScale: 1.2
+  duration: 0.25
 --- !u!1 &1485788147
 GameObject:
   m_ObjectHideFlags: 0
@@ -27943,6 +27953,7 @@ GameObject:
   - component: {fileID: 1796939744}
   - component: {fileID: 1796939743}
   - component: {fileID: 1796939742}
+  - component: {fileID: 1796939745}
   m_Layer: 5
   m_Name: Button - Buy Max Bounce
   m_TagString: Untagged
@@ -28052,6 +28063,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1796939740}
   m_CullTransparentMesh: 1
+--- !u!114 &1796939745
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1796939740}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ffdac0d9aef28846b4f92d28489f691, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIHoverScale
+  hoverScale: 1.2
+  duration: 0.25
 --- !u!1 &1800081244
 GameObject:
   m_ObjectHideFlags: 0
