@@ -15,5 +15,5 @@ MonoBehaviour:
   type: 0
   upgradeName: Future Sight
   description: Enables trajectory preview for better aiming
-  cost: 4
+  cost: 3
   unlockRound: 0

@@ -15,5 +15,5 @@ MonoBehaviour:
   type: 2
   upgradeName: Interest
   description: Gains extra cash each round every 5 you have
-  cost: 6
+  cost: 4
   unlockRound: 4

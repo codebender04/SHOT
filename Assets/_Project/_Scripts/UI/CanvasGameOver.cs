@@ -78,7 +78,6 @@ public class CanvasGameOver : UICanvas
 
     private void OnPremiumShop()
     {
-        SoundManager.Instance.PlaySuccessUIClick();
         CloseImmediate();
         UIManager.Instance.Open<CanvasPremiumShop>();
     }

@@ -15,5 +15,5 @@ MonoBehaviour:
   type: 7
   upgradeName: Lucky Shop
   description: moderate chance of freebies or discounts in the shop
-  cost: 22
+  cost: 18
   unlockRound: 12

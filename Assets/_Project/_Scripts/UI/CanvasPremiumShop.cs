@@ -43,7 +43,7 @@ public class CanvasPremiumShop : UICanvas
 
         var upgrades = PremiumUpgradeManager.Instance.Upgrades;
 
-        int currentRound = RoundManager.Instance.CurrentRound;
+        int highestRound = RoundManager.Instance.HighestRound;
         int upcomingCount = 0;
 
         for (int i = 0; i < upgradeItems.Length; i++)
@@ -58,7 +58,7 @@ public class CanvasPremiumShop : UICanvas
 
             PremiumUpgrade upgrade = upgrades[i];
 
-            bool unlocked = currentRound >= upgrade.unlockRound;
+            bool unlocked = highestRound >= upgrade.unlockRound;
             bool upcoming = false;
 
             if (!unlocked && upcomingCount < 2)
@@ -93,7 +93,6 @@ public class CanvasPremiumShop : UICanvas
 
     private void OnStart()
     {
-        SoundManager.Instance.PlaySuccessUIClick();
         sequence?.Kill();
 
         sequence = DOTween.Sequence();

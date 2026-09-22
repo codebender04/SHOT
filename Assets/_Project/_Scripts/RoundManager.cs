@@ -55,6 +55,7 @@ public class RoundManager : Singleton<RoundManager>
     private readonly List<Collectible> activeCollectibles = new();
     private readonly List<GameObject> activeObstacles = new();
 
+    public int HighestRound { get; private set; }
     public int CurrentRound { get; private set; }
     public bool IsRoundActive { get; private set; }
     public int HighestKillStreak => highestKillStreak;
@@ -143,6 +144,7 @@ public class RoundManager : Singleton<RoundManager>
         }
 
         CurrentRound++;
+        HighestRound = Mathf.Max(HighestRound, CurrentRound);
 
         IsRoundActive = true;
 

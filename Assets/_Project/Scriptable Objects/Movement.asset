@@ -15,5 +15,5 @@ MonoBehaviour:
   type: 4
   upgradeName: Free Movement
   description: Free movement for a fixed distance per round
-  cost: 12
+  cost: 11
   unlockRound: 8

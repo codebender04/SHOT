@@ -15,11 +15,11 @@ public class SoundManager : Singleton<SoundManager>
 
     public void PlaySuccessUIClick()
     {
-        audioSource.PlayOneShot(successUIClick);
+        audioSource.PlayOneShot(successUIClick, 0.5f);
     }
 
     public void PlayUnsuccessfulUIClick()
     {
-        audioSource.PlayOneShot(unsuccessfulUIClick);
+        audioSource.PlayOneShot(unsuccessfulUIClick, 0.5f);
     }
 }

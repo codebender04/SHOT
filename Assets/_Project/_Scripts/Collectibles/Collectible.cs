@@ -1,7 +1,6 @@
 using DG.Tweening;
 using System;
 using UnityEngine;
-using UnityEngine.LightTransport;
 using UnityEngine.UIElements;
 
 public abstract class Collectible : MonoBehaviour

@@ -15,5 +15,5 @@ MonoBehaviour:
   type: 6
   upgradeName: Dual Wield
   description: Gets another gun
-  cost: 20
+  cost: 18
   unlockRound: 12

@@ -15,5 +15,5 @@ MonoBehaviour:
   type: 1
   upgradeName: Growing Bullet
   description: Bullets grow in size after each bounce
-  cost: 5
+  cost: 4
   unlockRound: 0

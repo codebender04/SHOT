@@ -15,5 +15,5 @@ MonoBehaviour:
   type: 5
   upgradeName: Contact Damage
   description: The player deals contact damage while in recoil
-  cost: 10
+  cost: 8
   unlockRound: 8
