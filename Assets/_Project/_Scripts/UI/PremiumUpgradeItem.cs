@@ -106,10 +106,13 @@ public class PremiumUpgradeItem : MonoBehaviour,
             return;
 
         if (!PremiumUpgradeManager.Instance.Purchase(upgrade))
+        {
+            SoundManager.Instance.PlayUnsuccessfulUIClick();
             return;
+        }
 
+        SoundManager.Instance.PlaySuccessUIClick();
         tooltip?.Hide();
-
         Refresh();
     }
 

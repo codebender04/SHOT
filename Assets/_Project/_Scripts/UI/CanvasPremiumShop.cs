@@ -93,6 +93,7 @@ public class CanvasPremiumShop : UICanvas
 
     private void OnStart()
     {
+        SoundManager.Instance.PlaySuccessUIClick();
         sequence?.Kill();
 
         sequence = DOTween.Sequence();

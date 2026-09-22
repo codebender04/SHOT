@@ -233,9 +233,11 @@ public class CanvasShop : UICanvas
             .GetCanvas<CanvasGameplay>()
             .CanAfford(price))
         {
+            SoundManager.Instance.PlayUnsuccessfulUIClick();
             return;
         }
 
+        SoundManager.Instance.PlaySuccessUIClick();
         UIManager.Instance
             .GetCanvas<CanvasGameplay>()
             .ChangeMoney(-price);
