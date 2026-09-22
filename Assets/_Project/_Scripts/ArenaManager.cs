@@ -5,7 +5,7 @@ using UnityEngine;
 public class ArenaManager : Singleton<ArenaManager>
 {
     [Header("References")]
-    [SerializeField] private Transform arenaVisual;
+    [SerializeField] private SpriteRenderer arenaVisual;
     [SerializeField] private Camera gameplayCamera;
 
     [Header("Walls")]
@@ -13,7 +13,6 @@ public class ArenaManager : Singleton<ArenaManager>
     [SerializeField] private Collider2D bottomWall;
     [SerializeField] private Collider2D leftWall;
     [SerializeField] private Collider2D rightWall;
-    [SerializeField] private float wallInset = 0.15f;
 
     [Header("Arena")]
     [SerializeField] private Vector2 baseSize = new Vector2(3f, 3f);
@@ -33,14 +32,83 @@ public class ArenaManager : Singleton<ArenaManager>
 
     private Tween arenaTween;
 
+    private float topWallOffset;
+    private float bottomWallOffset;
+    private float leftWallOffset;
+    private float rightWallOffset;
+
+    private Vector3 topWallBaseScale;
+    private Vector3 bottomWallBaseScale;
+    private Vector3 leftWallBaseScale;
+    private Vector3 rightWallBaseScale;
+
+    private Vector2 originalVisualSize;
+
     private void Awake()
     {
         if (gameplayCamera == null)
             gameplayCamera = Camera.main;
 
+        CacheWallSetup();
+
         SetArenaSize(0);
-        RoundManager.Instance.OnRunStart += RoundManager_OnRunStart;
-        RoundManager.Instance.OnRoundStart += RoundManager_OnRoundStart;
+
+        if (RoundManager.Instance != null)
+        {
+            RoundManager.Instance.OnRunStart += RoundManager_OnRunStart;
+            RoundManager.Instance.OnRoundStart += RoundManager_OnRoundStart;
+        }
+    }
+
+    private void CacheWallSetup()
+    {
+        if (arenaVisual != null)
+            originalVisualSize = arenaVisual.size;
+
+        Vector2 visualPosition = arenaVisual != null
+            ? arenaVisual.transform.position
+            : transform.position;
+
+        if (topWall != null)
+        {
+            topWallOffset =
+                topWall.transform.position.y -
+                (visualPosition.y + originalVisualSize.y * 0.5f);
+
+            topWallBaseScale = topWall.transform.localScale;
+        }
+
+        if (bottomWall != null)
+        {
+            bottomWallOffset =
+                (visualPosition.y - originalVisualSize.y * 0.5f) -
+                bottomWall.transform.position.y;
+
+            bottomWallBaseScale = bottomWall.transform.localScale;
+        }
+
+        if (leftWall != null)
+        {
+            leftWallOffset =
+                (visualPosition.x - originalVisualSize.x * 0.5f) -
+                leftWall.transform.position.x;
+
+            leftWallBaseScale = leftWall.transform.localScale;
+        }
+
+        if (rightWall != null)
+        {
+            rightWallOffset =
+                rightWall.transform.position.x -
+                (visualPosition.x + originalVisualSize.x * 0.5f);
+
+            rightWallBaseScale = rightWall.transform.localScale;
+        }
+    }
+
+    private void RoundManager_OnRunStart(int round)
+    {
+        SetArenaSizeForRound(round, true);
     }
 
     private void RoundManager_OnRoundStart(int round)
@@ -58,34 +126,7 @@ public class ArenaManager : Singleton<ArenaManager>
             RoundManager.Instance.OnRoundStart -= RoundManager_OnRoundStart;
         }
     }
-    private void RoundManager_OnRunStart(int round)
-    {
-        SetArenaSizeForRound(round, true);
-        StartCoroutine(PlayRunStartAnimation());
-    }
 
-    private IEnumerator PlayRunStartAnimation()
-    {
-        yield return null;
-
-        if (arenaVisual == null)
-            yield break;
-
-        arenaVisual.DOKill();
-
-        Vector3 targetScale = new Vector3(
-            Size.x / baseSize.x,
-            Size.y / baseSize.y,
-            1f
-        );
-
-        arenaVisual.localScale = Vector3.one * 0.4f;
-
-        arenaVisual
-            .DOScale(targetScale, popDuration)
-            .SetEase(Ease.OutBack)
-            .SetUpdate(true);
-    }
     public void SetArenaSizeForRound(int round, bool animate = false)
     {
         int tier = Mathf.Max(
@@ -100,103 +141,114 @@ public class ArenaManager : Singleton<ArenaManager>
     {
         Size = baseSize + sizeIncrease * tier;
 
+        UpdateVisual(animate);
         UpdateWalls();
         UpdateCamera();
+    }
 
+    private void UpdateVisual(bool animate)
+    {
         if (arenaVisual == null)
             return;
 
-        Vector3 targetScale = new Vector3(
-            Size.x / baseSize.x,
-            Size.y / baseSize.y,
-            1f
-        );
+        arenaTween?.Kill();
 
-        arenaVisual.DOKill();
-
-        if (animate)
+        if (!animate)
         {
-            arenaVisual.localScale = Vector3.zero;
+            arenaVisual.size = Size;
+            return;
+        }
 
-            arenaVisual
-                .DOScale(targetScale, popDuration)
-                .SetEase(popEase);
-        }
-        else
-        {
-            arenaVisual.localScale = targetScale;
-        }
+        Vector2 startSize = Size * popScale;
+
+        arenaVisual.size = startSize;
+
+        arenaTween = DOTween.To(
+            () => arenaVisual.size,
+            value => arenaVisual.size = value,
+            Size,
+            popDuration
+        )
+        .SetEase(popEase)
+        .SetUpdate(true);
     }
+
     private void UpdateWalls()
     {
         Vector2 center = transform.position;
-        Vector2 halfSize = Size * 0.5f;
 
-        PositionHorizontalWall(
-            topWall,
-            center + Vector2.up * (halfSize.y - wallInset)
-        );
+        float scaleX = Size.x / originalVisualSize.x;
+        float scaleY = Size.y / originalVisualSize.y;
 
-        PositionHorizontalWall(
-            bottomWall,
-            center - Vector2.up * (halfSize.y - wallInset)
-        );
+        if (topWall != null)
+        {
+            Vector3 position = topWall.transform.position;
 
-        PositionVerticalWall(
-            leftWall,
-            center - Vector2.right * (halfSize.x - wallInset)
-        );
+            position.x = center.x;
+            position.y =
+                center.y +
+                Size.y * 0.5f +
+                topWallOffset;
 
-        PositionVerticalWall(
-            rightWall,
-            center + Vector2.right * (halfSize.x - wallInset)
-        );
-    }
+            topWall.transform.position = position;
 
-    private void PositionHorizontalWall(
-        Collider2D wall,
-        Vector2 targetCenter)
-    {
-        if (wall == null)
-            return;
+            Vector3 scale = topWallBaseScale;
+            scale.x *= scaleX;
+            topWall.transform.localScale = scale;
+        }
 
-        float halfThickness = wall.bounds.extents.y;
-        float y = targetCenter.y;
+        if (bottomWall != null)
+        {
+            Vector3 position = bottomWall.transform.position;
 
-        if (wall == topWall)
-            y += halfThickness;
+            position.x = center.x;
+            position.y =
+                center.y -
+                Size.y * 0.5f -
+                bottomWallOffset;
 
-        if (wall == bottomWall)
-            y -= halfThickness;
+            bottomWall.transform.position = position;
 
-        wall.transform.position = new Vector3(
-            targetCenter.x,
-            y,
-            wall.transform.position.z
-        );
-    }
+            Vector3 scale = bottomWallBaseScale;
+            scale.x *= scaleX;
+            bottomWall.transform.localScale = scale;
+        }
 
-    private void PositionVerticalWall(
-        Collider2D wall,
-        Vector2 targetCenter)
-    {
-        if (wall == null)
-            return;
+        if (leftWall != null)
+        {
+            Vector3 position = leftWall.transform.position;
 
-        float halfThickness = wall.bounds.extents.x;
-        float x = targetCenter.x;
+            position.x =
+                center.x -
+                Size.x * 0.5f -
+                leftWallOffset;
 
-        if (wall == leftWall)
-            x -= halfThickness;
+            position.y = center.y;
 
-        if (wall == rightWall)
-            x += halfThickness;
+            leftWall.transform.position = position;
 
-        wall.transform.position = new Vector3(
-            x,
-            targetCenter.y,
-            wall.transform.position.z
-        );
+            Vector3 scale = leftWallBaseScale;
+            scale.y *= scaleY;
+            leftWall.transform.localScale = scale;
+        }
+
+        if (rightWall != null)
+        {
+            Vector3 position = rightWall.transform.position;
+
+            position.x =
+                center.x +
+                Size.x * 0.5f +
+                rightWallOffset;
+
+            position.y = center.y;
+
+            rightWall.transform.position = position;
+
+            Vector3 scale = rightWallBaseScale;
+            scale.y *= scaleY;
+            rightWall.transform.localScale = scale;
+        }
     }
 
     private void UpdateCamera()
@@ -205,12 +257,16 @@ public class ArenaManager : Singleton<ArenaManager>
             return;
 
         float verticalSize = Size.y * 0.5f;
+
         float horizontalSize =
-            Size.x * 0.5f / gameplayCamera.aspect;
+            Size.x * 0.5f /
+            gameplayCamera.aspect;
 
         gameplayCamera.orthographicSize =
-            Mathf.Max(verticalSize, horizontalSize) +
-            cameraPadding;
+            Mathf.Max(
+                verticalSize,
+                horizontalSize
+            ) + cameraPadding;
     }
 
     public Vector2 GetRandomPosition()
